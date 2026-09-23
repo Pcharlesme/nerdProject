@@ -1,9 +1,7 @@
 import { EnquiryInput, Shipment } from "@/types";
 
- 
-
 // === Fictional demo data only, matching the five seed scenarios in the brief.====
-const SHIPMENTS: Shipment[] = [
+export const SHIPMENTS: Shipment[] = [
   {
     trackingNumber: "TRK-DEMO-001",
     status: "IN_TRANSIT",
@@ -236,7 +234,9 @@ export function isValidTrackingNumberFormat(value: string): boolean {
 }
 
 /** Simulates a public GET /shipments/:trackingNumber lookup. Never rejects; returns null if unknown. */
-export async function lookupShipment(trackingNumber: string): Promise<Shipment | null> {
+export async function lookupShipment(
+  trackingNumber: string,
+): Promise<Shipment | null> {
   await delay(NETWORK_DELAY_MS);
   const normalized = trackingNumber.trim().toUpperCase();
   return SHIPMENTS.find((s) => s.trackingNumber === normalized) ?? null;
