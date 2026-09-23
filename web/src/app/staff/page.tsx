@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import { CustomButton } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 
 export default function StaffLogin() {
@@ -93,12 +93,15 @@ export default function StaffLogin() {
             Remember me
           </label>
 
-          <CustomButton
+          <Button
             // authenticate
             // if successful:
-            onPress={() => router.push("/staff/home")}
-            title={"Sign in"}
-          />
+            onClick={() => router.push("/staff/home")}
+            size="lg"
+            className="w-full"
+          >
+            Sign in
+          </Button>
         </form>
       </motion.section>
     </main>
