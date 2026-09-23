@@ -12,6 +12,7 @@ import {
   Truck,
 } from "lucide-react";
 import { Shipment } from "@/types";
+import Link from "next/link";
 
 interface StaffShipmentsProps {
   shipments: Shipment[];
@@ -223,11 +224,17 @@ function ShipmentRow({ shipment }: { shipment: Shipment }) {
       </td>
 
       <td className="px-5 py-5">
+        <Link
+          href={`/staff/home/shipments/${shipment.trackingNumber}`}
+          className="inline-flex items-center rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary hover:bg-background"
+        >
+          View
+        </Link>
         <button
           type="button"
           className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary hover:bg-background focus-visible:outline-2 focus-visible:outline-primary"
         >
-          View
+          Update
           <MoreHorizontal className="size-4" />
         </button>
       </td>
