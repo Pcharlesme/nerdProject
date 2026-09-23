@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
+import { CustomButton } from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 export default function StaffLogin() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-5">
-         <div
+      <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(79,70,229,0.16),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(56,189,248,0.16),transparent_35%)]"
       />
@@ -90,12 +93,12 @@ export default function StaffLogin() {
             Remember me
           </label>
 
-          <button
-            type="submit"
-            className="min-h-12 w-full rounded-lg bg-primary px-4 font-medium text-on-primary transition hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Sign in
-          </button>
+          <CustomButton
+            // authenticate
+            // if successful:
+            onPress={() => router.push("/staff/home")}
+            title={"Sign in"}
+          />
         </form>
       </motion.section>
     </main>

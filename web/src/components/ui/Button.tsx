@@ -24,7 +24,7 @@ const variants: Record<ButtonVariant, string> = {
   ghost: "bg-transparent text-text hover:bg-background",
 };
 
-export function Button({
+export function CustomButton({
   title,
   onPress,
   variant = "primary",

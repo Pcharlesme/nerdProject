@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { CustomButton } from "@/components/ui/Button";
 
 interface TrackingSearchProps {
   onSearch: (trackingNumber: string) => void;
@@ -47,7 +47,7 @@ export function TrackingSearch({
           className="min-h-14 flex-1 rounded-lg border border-border bg-surface px-4 text-base text-text outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
 
-        <Button
+        <CustomButton
           type="submit"
           title={loading ? "Searching..." : "Track"}
           onPress={() => {}}
