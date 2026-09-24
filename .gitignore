@@ -6,4 +6,3 @@ dist
 *.log
 .DS_Store
 requirement
-web/src/components/staff
