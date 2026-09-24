@@ -6,3 +6,7 @@ dist
 *.log
 .DS_Store
 requirement
+web/src/providers
+web/src/components/staff
+web/src/app/staff/enquiries
+web/src/app/staff/dashboard

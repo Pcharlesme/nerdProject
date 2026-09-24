@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { lookupShipment } from "@/constant/mockData";
+import { useAppData } from "@/providers/AppDataProvider";
 import type { Shipment } from "@/types";
 
 type LookupStatus = "idle" | "loading" | "not-found" | "found";
@@ -20,17 +20,21 @@ const IDLE_STATE: LookupState = {
 
 /** Owns the public tracking-search flow: fires the (mock) lookup and tracks idle/loading/not-found/found. */
 export function useTrackingLookup() {
+  const { lookupShipment } = useAppData();
   const [state, setState] = useState<LookupState>(IDLE_STATE);
 
-  const search = useCallback(async (trackingNumber: string) => {
-    setState({ status: "loading", shipment: null, trackingNumber });
-    const shipment = await lookupShipment(trackingNumber);
-    setState(
-      shipment
-        ? { status: "found", shipment, trackingNumber }
-        : { status: "not-found", shipment: null, trackingNumber },
-    );
-  }, []);
+  const search = useCallback(
+    async (trackingNumber: string) => {
+      setState({ status: "loading", shipment: null, trackingNumber });
+      const shipment = await lookupShipment(trackingNumber);
+      setState(
+        shipment
+          ? { status: "found", shipment, trackingNumber }
+          : { status: "not-found", shipment: null, trackingNumber },
+      );
+    },
+    [lookupShipment],
+  );
 
   const reset = useCallback(() => setState(IDLE_STATE), []);
 
