@@ -1,22 +1,43 @@
 "use client";
 
-import { motion } from "motion/react";
+import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
 import { TrackingSearch } from "@/components/customer/TrackingSearch";
-import { TrackingResult } from "@/components/customer/TrackingResult";
+import { TrackingResult, TrackingResultSkeleton } from "@/components/customer/TrackingResult";
+import { EnquiryPanel } from "@/components/customer/EnquiryPanel";
 import { useTrackingLookup } from "@/hooks/useTrackingLookup";
 
 export default function Home() {
   const { status, shipment, trackingNumber, search } = useTrackingLookup();
+  const hasSearched = status === "not-found" || status === "found";
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-white">
-      {/* Soft gradient atmosphere */}
-      <div
+      {/* Soft, slowly-drifting gradient atmosphere */}
+      <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(79,70,229,0.16),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(56,189,248,0.16),transparent_35%)]"
+        animate={prefersReducedMotion ? undefined : { scale: [1, 1.08, 1], x: [0, 14, 0], y: [0, -10, 0] }}
+        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <section className="relative flex flex-col items-center px-5 py-16 sm:px-8">
+      <nav className="relative mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-6 sm:px-8">
+        <span className="flex items-center gap-2">
+          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-sm font-bold text-on-primary">
+            S
+          </span>
+          <span className="text-sm font-semibold text-text">ShipTrack</span>
+        </span>
+        <Link
+          href="/staff"
+          className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-text/30 hover:text-text focus-visible:outline-2 focus-visible:outline-primary"
+        >
+          Staff sign in
+        </Link>
+      </nav>
+
+      <section className="relative flex flex-col items-center px-5 pb-16 pt-6 sm:px-8">
         <div className="w-full max-w-3xl text-center">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -55,11 +76,13 @@ export default function Home() {
           </motion.div>
         </div>
 
-        <div aria-live="polite" className="mt-8 flex w-full justify-center px-1">
+        <div aria-live="polite" className="mt-10 flex w-full flex-col items-center gap-5 px-1">
+          {status === "loading" && <TrackingResultSkeleton />}
+
           {status === "not-found" && (
             <div
               role="alert"
-              className="w-full max-w-xl rounded-lg border border-border bg-surface p-4 text-sm text-text shadow-sm"
+              className="w-full max-w-2xl rounded-lg border border-border bg-surface p-4 text-sm text-text shadow-sm"
             >
               We couldn&apos;t find a shipment for{" "}
               <span className="font-mono font-semibold">{trackingNumber}</span>. Double-check the
@@ -68,6 +91,8 @@ export default function Home() {
           )}
 
           {status === "found" && shipment && <TrackingResult shipment={shipment} />}
+
+          {hasSearched && <EnquiryPanel key={trackingNumber ?? "none"} trackingNumber={trackingNumber} />}
         </div>
       </section>
     </main>

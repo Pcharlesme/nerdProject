@@ -46,6 +46,8 @@ export interface EnquiryInput {
   trackingNumber: string;
   category: EnquiryCategory;
   message: string;
+  /** Optional — the brief doesn't require contact identity, only offer it back for follow-up. */
+  contactEmail?: string;
 }
 
 export const ENQUIRY_CATEGORIES: { value: EnquiryCategory; label: string }[] = [

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { isValidTrackingNumberFormat } from "@/constant/mockData";
 
@@ -17,6 +17,9 @@ const ERROR_ID = "tracking-number-error";
 export function TrackingSearch({ onSearch, loading = false }: TrackingSearchProps) {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const isEmpty = trackingNumber.trim().length === 0;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,34 +39,54 @@ export function TrackingSearch({ onSearch, loading = false }: TrackingSearchProp
     onSearch(value);
   };
 
+  const handleClear = () => {
+    setTrackingNumber("");
+    setError(null);
+    inputRef.current?.focus();
+  };
+
   return (
-    <form onSubmit={handleSubmit} noValidate className="w-full max-w-xl text-left">
+    <form onSubmit={handleSubmit} noValidate className="w-full max-w-2xl text-left">
       <label htmlFor="tracking-number" className="mb-2 block text-sm font-medium text-text">
         Tracking number
       </label>
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <input
-          id="tracking-number"
-          name="trackingNumber"
-          type="text"
-          value={trackingNumber}
-          onChange={(event) => {
-            setTrackingNumber(event.target.value);
-            if (error) setError(null);
-          }}
-          placeholder="e.g. TRK-DEMO-001"
-          autoComplete="off"
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? ERROR_ID : HINT_ID}
-          className="min-h-14 flex-1 rounded-lg border border-border bg-surface px-4 text-base text-text outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-        />
+        <div className="relative flex-1">
+          <input
+            ref={inputRef}
+            id="tracking-number"
+            name="trackingNumber"
+            type="text"
+            value={trackingNumber}
+            onChange={(event) => {
+              setTrackingNumber(event.target.value);
+              if (error) setError(null);
+            }}
+            placeholder="e.g. TRK-DEMO-001"
+            autoComplete="off"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? ERROR_ID : HINT_ID}
+            className="min-h-14 w-full rounded-lg border border-border bg-surface px-4 pr-11 text-base text-text outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+
+          {!isEmpty && (
+            <button
+              type="button"
+              onClick={handleClear}
+              aria-label="Clear tracking number"
+              className="absolute right-3 top-1/2 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-background hover:text-text focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
 
         <Button
           type="submit"
           size="lg"
           loading={loading}
-          disabled={loading}
+          disabled={loading || isEmpty}
           icon={<Search className="size-4" aria-hidden="true" />}
           className="w-full sm:w-auto"
         >

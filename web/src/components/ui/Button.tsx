@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { Loader2 } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -40,6 +41,13 @@ export function Button({
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  // Loading keeps the button's real colour (it's actively doing something); only a
+  // genuinely inert, non-loading disabled state gets the flat neutral treatment —
+  // dimming the real colour with opacity reads as "broken", not "unavailable".
+  const isInert = Boolean(disabled) && !loading;
+  const stateClasses = isInert
+    ? "cursor-not-allowed bg-border text-muted"
+    : `${loading ? "cursor-wait" : "cursor-pointer"} ${VARIANT_CLASSES[variant]}`;
 
   return (
     <motion.button
@@ -48,11 +56,15 @@ export function Button({
       aria-busy={loading}
       whileTap={isDisabled ? undefined : { scale: 0.97 }}
       transition={{ duration: 0.15 }}
-      className={`inline-flex items-center justify-center font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
+      className={`inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${stateClasses} ${SIZE_CLASSES[size]} ${className}`}
       {...props}
     >
       {children}
-      {!loading && icon}
+      {loading ? (
+        <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+      ) : (
+        icon
+      )}
     </motion.button>
   );
 }
