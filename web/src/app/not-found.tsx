@@ -7,7 +7,7 @@ export default function NotFound() {
       <PackageX className="size-10 text-muted" aria-hidden="true" />
       <h1 className="text-2xl font-semibold text-text">Page not found</h1>
       <p className="max-w-sm text-sm text-muted">
-        The page you&apos;re looking for doesn&apos;t exist or may have moved.
+        The page you&apos;re looking for doesn&apos;t exist or may have moved. 
       </p>
       <Link
         href="/"

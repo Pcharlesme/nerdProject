@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { TrackingSearch } from "@/components/customer/TrackingSearch";
 import { TrackingResult, TrackingResultSkeleton } from "@/components/customer/TrackingResult";
 import { EnquiryPanel } from "@/components/customer/EnquiryPanel";
+import { Logo } from "@/components/ui/Logo";
 import { useTrackingLookup } from "@/hooks/useTrackingLookup";
 
 export default function Home() {
@@ -24,10 +25,8 @@ export default function Home() {
 
       <nav className="relative mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-6 sm:px-8">
         <span className="flex items-center gap-2">
-          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-sm font-bold text-on-primary">
-            S
-          </span>
-          <span className="text-sm font-semibold text-text">ShipTrack</span>
+          <Logo />
+          <span className="text-sm font-semibold text-text">Nerd Logistics</span>
         </span>
         <Link
           href="/staff"
