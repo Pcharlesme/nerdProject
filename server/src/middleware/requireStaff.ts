@@ -12,6 +12,7 @@ export const requireStaff: RequestHandler = (req, res, next) => {
   const token = readToken(req.cookies?.[SESSION_COOKIE], req.headers.authorization);
   if (!token) throw AppError.unauthenticated();
 
+  
   try {
     req.staff = verifySessionToken(token);
   } catch (error) {
