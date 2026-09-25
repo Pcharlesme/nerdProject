@@ -29,7 +29,8 @@ export function TrackingResult({ shipment }: { shipment: Shipment }) {
         <SectionLabel>Shipment details</SectionLabel>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm sm:grid-cols-3">
           <InfoField icon={MapPin} label="Route">
-            {shipment.originCity} → {shipment.destinationCity}
+            {shipment.originCity}, {shipment.originRegion} → {shipment.destinationCity},{" "}
+            {shipment.destinationRegion}
           </InfoField>
           <InfoField icon={CalendarClock} label="Estimated delivery">
             {formatDateTime(shipment.estimatedDeliveryAt)}
