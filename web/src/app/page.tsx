@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { TrackingSearch } from "@/components/customer/TrackingSearch";
@@ -46,9 +45,8 @@ export default function Home() {
       </nav>
 
       {isIdle ? (
-        <section className="relative flex flex-1 flex-col items-center justify-center gap-12 px-5 pb-16 sm:px-8">
+        <section className="relative flex flex-1 flex-col items-center justify-center px-5 pb-16 sm:px-8">
           <HeroIntro onSearch={search} loading={false} />
-          {/* //<HeroBanner prefersReducedMotion={prefersReducedMotion} /> */}
         </section>
       ) : (
         <section className="relative flex flex-col items-center px-5 pb-16 pt-6 sm:px-8">

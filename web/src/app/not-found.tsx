@@ -16,23 +16,15 @@ export default function NotFound() {
       </span>
 
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{
-          opacity: 1,
-          y: prefersReducedMotion ? 0 : [16, 0, -8, 0],
-        }}
-        transition={
-          prefersReducedMotion
-            ? { duration: 0.5 }
-            : { opacity: { duration: 0.5 }, y: { duration: 7, repeat: Infinity, ease: "easeInOut" } }
-        }
+        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         className="relative aspect-2/1 w-full max-w-xl overflow-hidden rounded-2xl border border-border shadow-xl"
       >
         <Image
           src="/brand/nerdhero.png"
           alt="A Nerd Logistics delivery truck on the road"
           fill
-          priority
           sizes="(min-width: 640px) 576px, 100vw"
           className="object-cover"
         />

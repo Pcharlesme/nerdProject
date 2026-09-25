@@ -14,7 +14,10 @@ interface TrackingSearchProps {
 const HINT_ID = "tracking-number-hint";
 const ERROR_ID = "tracking-number-error";
 
-export function TrackingSearch({ onSearch, loading = false }: TrackingSearchProps) {
+export function TrackingSearch({
+  onSearch,
+  loading = false,
+}: TrackingSearchProps) {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,8 +49,15 @@ export function TrackingSearch({ onSearch, loading = false }: TrackingSearchProp
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="w-full max-w-2xl text-left">
-      <label htmlFor="tracking-number" className="mb-2 block text-sm font-medium text-text">
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      className="w-full max-w-2xl text-left"
+    >
+      <label
+        htmlFor="tracking-number"
+        className="mb-2 block text-sm font-medium text-text"
+      >
         Tracking number
       </label>
 
@@ -86,9 +96,9 @@ export function TrackingSearch({ onSearch, loading = false }: TrackingSearchProp
           type="submit"
           size="lg"
           loading={loading}
-          disabled={loading || isEmpty}
+          disabled={loading}
           icon={<Search className="size-4" aria-hidden="true" />}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto cursor-pointer md:px-12"
         >
           {loading ? "Searching…" : "Track"}
         </Button>
