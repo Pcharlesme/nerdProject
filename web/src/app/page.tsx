@@ -1,12 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-import { CheckCircle2, Clock, MapPin, Package, PackageCheck, Truck } from "lucide-react";
 import { TrackingSearch } from "@/components/customer/TrackingSearch";
-import { TrackingResult, TrackingResultSkeleton } from "@/components/customer/TrackingResult";
+import {
+  TrackingResult,
+  TrackingResultSkeleton,
+} from "@/components/customer/TrackingResult";
 import { EnquiryPanel } from "@/components/customer/EnquiryPanel";
-import { Logo } from "@/components/ui/Logo";
+import { Logo, Wordmark } from "@/components/ui/Logo";
 import { useTrackingLookup } from "@/hooks/useTrackingLookup";
 
 export default function Home() {
@@ -21,14 +24,18 @@ export default function Home() {
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(79,70,229,0.16),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(56,189,248,0.16),transparent_35%)]"
-        animate={prefersReducedMotion ? undefined : { scale: [1, 1.08, 1], x: [0, 14, 0], y: [0, -10, 0] }}
+        animate={
+          prefersReducedMotion
+            ? undefined
+            : { scale: [1, 1.08, 1], x: [0, 14, 0], y: [0, -10, 0] }
+        }
         transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
       />
 
       <nav className="relative mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-6 sm:px-8">
         <span className="flex items-center gap-2">
           <Logo />
-          <span className="text-sm font-semibold text-text">Nerd Logistics</span>
+          <Wordmark />
         </span>
         <Link
           href="/staff"
@@ -39,20 +46,18 @@ export default function Home() {
       </nav>
 
       {isIdle ? (
-        // Nothing searched yet: use the width instead of stacking everything in a
-        // narrow centered column, and center the whole block in the space under the
-        // nav so it doesn't top-anchor and leave a dead gap below on tall screens.
-        <section className="relative flex flex-1 items-center px-5 pb-16 sm:px-8">
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-            <HeroIntro variant="split" onSearch={search} loading={false} />
-         
-          </div>
+        <section className="relative flex flex-1 flex-col items-center justify-center gap-12 px-5 pb-16 sm:px-8">
+          <HeroIntro onSearch={search} loading={false} />
+          {/* //<HeroBanner prefersReducedMotion={prefersReducedMotion} /> */}
         </section>
       ) : (
         <section className="relative flex flex-col items-center px-5 pb-16 pt-6 sm:px-8">
-          <HeroIntro variant="focused" onSearch={search} loading={status === "loading"} />
+          <HeroIntro onSearch={search} loading={status === "loading"} />
 
-          <div aria-live="polite" className="mt-10 flex w-full flex-col items-center gap-5 px-1">
+          <div
+            aria-live="polite"
+            className="mt-10 flex w-full flex-col items-center gap-5 px-1"
+          >
             {status === "loading" && <TrackingResultSkeleton />}
 
             {status === "not-found" && (
@@ -61,14 +66,23 @@ export default function Home() {
                 className="w-full max-w-2xl rounded-lg border border-border bg-surface p-4 text-sm text-text shadow-sm"
               >
                 We couldn&apos;t find a shipment for{" "}
-                <span className="font-mono font-semibold">{trackingNumber}</span>. Double-check the
-                tracking number and try again.
+                <span className="font-mono font-semibold">
+                  {trackingNumber}
+                </span>
+                . Double-check the tracking number and try again.
               </div>
             )}
 
-            {status === "found" && shipment && <TrackingResult shipment={shipment} />}
+            {status === "found" && shipment && (
+              <TrackingResult shipment={shipment} />
+            )}
 
-            {hasSearched && <EnquiryPanel key={trackingNumber ?? "none"} trackingNumber={trackingNumber} />}
+            {hasSearched && (
+              <EnquiryPanel
+                key={trackingNumber ?? "none"}
+                trackingNumber={trackingNumber}
+              />
+            )}
           </div>
         </section>
       )}
@@ -77,23 +91,14 @@ export default function Home() {
 }
 
 interface HeroIntroProps {
-  variant: "split" | "focused";
   onSearch: (trackingNumber: string) => void;
   loading: boolean;
 }
 
-/** Eyebrow + heading + search form. Left-aligned beside the visual on idle ("split"); centered once searching/showing a result ("focused"). */
-function HeroIntro({ variant, onSearch, loading }: HeroIntroProps) {
-  const isSplit = variant === "split";
-
+/** Eyebrow + heading + search form, centered in both the idle and searching/result layouts. */
+function HeroIntro({ onSearch, loading }: HeroIntroProps) {
   return (
-    <div
-      className={
-        isSplit
-          ? "mx-auto flex w-full max-w-xl flex-col items-center text-center lg:mx-0 lg:items-start lg:text-left"
-          : "w-full max-w-3xl text-center"
-      }
-    >
+    <div className="w-full max-w-3xl text-center">
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -106,7 +111,7 @@ function HeroIntro({ variant, onSearch, loading }: HeroIntroProps) {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className={`max-w-2xl text-4xl font-semibold tracking-tight text-text sm:text-6xl ${isSplit ? "lg:mx-0" : "mx-auto"}`}
+        className="mx-auto max-w-2xl text-4xl font-semibold tracking-tight text-text sm:text-6xl"
       >
         Where is your{" "}
         <span className="font-[cursive] font-normal text-primary">parcel?</span>
@@ -116,22 +121,20 @@ function HeroIntro({ variant, onSearch, loading }: HeroIntroProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className={`mb-10 mt-5 max-w-lg text-base leading-7 text-muted sm:text-lg ${isSplit ? "lg:mx-0" : "mx-auto"}`}
+        className="mx-auto mb-10 mt-5 max-w-lg text-base leading-7 text-muted sm:text-lg"
       >
-        Enter your tracking number to see where your parcel is and what happens next.
+        Enter your tracking number to see where your parcel is and what happens
+        next.
       </motion.p>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className={`flex w-full justify-center ${isSplit ? "lg:justify-start" : "mx-auto"}`}
+        className="mx-auto flex justify-center"
       >
         <TrackingSearch onSearch={onSearch} loading={loading} />
       </motion.div>
     </div>
   );
 }
-
- 
- 

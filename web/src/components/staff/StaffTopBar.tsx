@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useStaffAuth } from "@/providers/StaffAuthProvider";
+import { Logo, Wordmark } from "@/components/ui/Logo";
 
 const NAV_LINKS = [
   { href: "/staff/dashboard", label: "Dashboard" },
@@ -25,10 +26,11 @@ export function StaffTopBar() {
       <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-5 py-3 lg:px-8">
         <div className="flex items-center gap-6">
           <Link href="/staff/dashboard" className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-md bg-primary text-sm font-bold text-on-primary">
-              S
+            <Logo />
+            <Wordmark />
+            <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-muted">
+              Staff
             </span>
-            <span className="text-sm font-semibold text-text">ShipTrack Staff</span>
           </Link>
 
           <nav className="hidden items-center gap-1 sm:flex">

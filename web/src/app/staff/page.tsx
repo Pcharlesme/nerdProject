@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { AlertCircle, Info } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Logo, Wordmark } from "@/components/ui/Logo";
 import { useStaffAuth } from "@/providers/StaffAuthProvider";
 
 type FieldErrors = { email?: string; password?: string };
@@ -81,6 +82,10 @@ export default function StaffLogin() {
         className="relative w-full max-w-md"
       >
         <div className="mb-8">
+          <span className="mb-6 flex items-center gap-2">
+            <Logo />
+            <Wordmark />
+          </span>
           <p className="mb-2 text-sm font-medium text-primary">Staff portal</p>
           <h1 className="text-3xl font-semibold tracking-tight text-text">Sign in</h1>
           <p className="mt-2 text-sm text-muted">Sign in to manage shipments and customer enquiries.</p>
