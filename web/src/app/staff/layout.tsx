@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { StaffAuthProvider, useStaffAuth } from "@/providers/StaffAuthProvider";
-import { StaffTopBar } from "@/components/staff/StaffTopBar";
+import { StaffSidebar } from "@/components/staff/StaffSidebar";
 
 const LOGIN_PATH = "/staff";
 
@@ -36,10 +36,10 @@ function RouteGuard({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
-      <StaffTopBar />
-      {children}
-    </>
+    <div className="flex min-h-screen flex-col bg-background lg:flex-row">
+      <StaffSidebar />
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
   );
 }
 
