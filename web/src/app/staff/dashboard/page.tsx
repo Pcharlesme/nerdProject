@@ -4,20 +4,10 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  ArrowUpDown,
-  Calendar,
-  Check,
-  Copy,
-  Download,
-  Maximize2,
-  Package,
-  Plus,
-  Search,
-} from "lucide-react";
+import { ArrowUpDown, Check, Copy, Download, Package, Plus, Search } from "lucide-react";
 import { useAppData } from "@/providers/AppDataProvider";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { DeliveryPerformanceChart } from "@/components/staff/DeliveryPerformanceChart";
+import { DeliveryPerformancePanel } from "@/components/staff/DeliveryPerformancePanel";
 import { STATUS_LABEL } from "@/lib/shipmentStatus";
 import { formatDateShort } from "@/lib/formatDate";
 import { downloadCsv } from "@/lib/exportCsv";
@@ -41,10 +31,14 @@ export default function StaffDashboardPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<OrderFilter>("ALL");
   const [copiedTrackingNumber, setCopiedTrackingNumber] = useState<string | null>(null);
+  const [sortNewestFirst, setSortNewestFirst] = useState(true);
 
   const filteredShipments = [...shipments]
     .filter((s) => activeFilter === "ALL" || s.status === activeFilter)
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    .sort((a, b) => {
+      const delta = new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      return sortNewestFirst ? delta : -delta;
+    });
 
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -111,7 +105,7 @@ export default function StaffDashboardPage() {
             <button
               type="button"
               onClick={handleExport}
-              className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-text transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-text transition-colors hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <Download className="size-4" aria-hidden="true" />
               Export
@@ -135,31 +129,7 @@ export default function StaffDashboardPage() {
       </div>
 
       <div className="px-5 py-6 lg:px-8">
-        <section className="rounded-2xl border border-border bg-surface p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-text">Delivery performance</h2>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-label="Change date range"
-                className="flex size-9 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-primary/30 hover:text-text"
-              >
-                <Calendar className="size-4" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                aria-label="Expand chart"
-                className="flex size-9 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-primary/30 hover:text-text"
-              >
-                <Maximize2 className="size-4" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <DeliveryPerformanceChart />
-          </div>
-        </section>
+        <DeliveryPerformancePanel />
 
         <section className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border p-5">
@@ -183,7 +153,7 @@ export default function StaffDashboardPage() {
                     className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
                       active
                         ? "border-text bg-text text-white"
-                        : "border-border text-text hover:border-primary/30"
+                        : "border-border text-text hover:border-text/30"
                     }`}
                   >
                     {filter.label}
@@ -193,8 +163,12 @@ export default function StaffDashboardPage() {
               })}
               <button
                 type="button"
-                aria-label="Sort orders"
-                className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-primary/30 hover:text-text"
+                onClick={() => setSortNewestFirst((value) => !value)}
+                aria-label={sortNewestFirst ? "Sorted newest first — click for oldest first" : "Sorted oldest first — click for newest first"}
+                title={sortNewestFirst ? "Newest first" : "Oldest first"}
+                className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border transition-colors ${
+                  sortNewestFirst ? "border-border text-muted hover:border-text/30 hover:text-text" : "border-text bg-text text-white"
+                }`}
               >
                 <ArrowUpDown className="size-4" aria-hidden="true" />
               </button>
@@ -266,7 +240,7 @@ function OrderRow({
   return (
     <tr className="border-b border-border text-sm transition-colors last:border-0 hover:bg-background">
       <td className="px-5 py-5">
-        <Link href={`/staff/shipments/${shipment.trackingNumber}`} className="font-semibold text-text hover:text-primary">
+        <Link href={`/staff/shipments/${shipment.trackingNumber}`} className="font-semibold text-text hover:underline">
           {shipment.trackingNumber}
         </Link>
         <p className="mt-1 text-xs text-muted">{shipment.referenceCode}</p>
@@ -283,7 +257,7 @@ function OrderRow({
         <div className="flex items-center justify-end gap-2">
           <Link
             href={`/staff/shipments/${shipment.trackingNumber}`}
-            className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text transition-colors hover:border-primary/40 hover:text-primary"
+            className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text transition-colors hover:border-text/40 hover:text-text"
           >
             See more
           </Link>
@@ -314,7 +288,7 @@ function OrderCard({
     <div className="space-y-3 p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <Link href={`/staff/shipments/${shipment.trackingNumber}`} className="font-semibold text-text hover:text-primary">
+          <Link href={`/staff/shipments/${shipment.trackingNumber}`} className="font-semibold text-text hover:underline">
             {shipment.trackingNumber}
           </Link>
           <p className="mt-0.5 text-xs text-muted">{shipment.referenceCode}</p>
@@ -332,7 +306,7 @@ function OrderCard({
       <div className="flex items-center gap-2 pt-1">
         <Link
           href={`/staff/shipments/${shipment.trackingNumber}`}
-          className="inline-flex flex-1 items-center justify-center rounded-full border border-border px-3 py-2 text-sm font-medium text-text transition-colors hover:border-primary/40 hover:text-primary"
+          className="inline-flex flex-1 items-center justify-center rounded-full border border-border px-3 py-2 text-sm font-medium text-text transition-colors hover:border-text/40 hover:text-text"
         >
           See more
         </Link>

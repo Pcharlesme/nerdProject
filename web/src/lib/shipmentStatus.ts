@@ -31,13 +31,15 @@ export const STATUS_ICON: Record<ShipmentStatus, LucideIcon> = {
   EXCEPTION: AlertTriangle,
 };
 
-export type StatusTone = "primary" | "success" | "warning" | "danger";
+// Every non-terminal status gets its own color — Collected and In Transit used to
+// share "primary" (blue), which made them indistinguishable at a glance.
+export type StatusTone = "primary" | "success" | "warning" | "danger" | "info" | "accent" | "neutral";
 
 export const STATUS_TONE: Record<ShipmentStatus, StatusTone> = {
-  CREATED: "primary",
-  COLLECTED: "primary",
+  CREATED: "neutral",
+  COLLECTED: "info",
   IN_TRANSIT: "primary",
-  OUT_FOR_DELIVERY: "primary",
+  OUT_FOR_DELIVERY: "accent",
   DELIVERED: "success",
   DELAYED: "warning",
   EXCEPTION: "danger",
@@ -49,6 +51,9 @@ export const BADGE_TONE_CLASSES: Record<StatusTone, string> = {
   success: "border-success-border bg-success-bg text-success",
   warning: "border-warning-border bg-warning-bg text-warning",
   danger: "border-danger-border bg-danger-bg text-danger",
+  info: "border-teal-200 bg-teal-50 text-teal-700",
+  accent: "border-violet-200 bg-violet-50 text-violet-700",
+  neutral: "border-border bg-background text-muted",
 };
 
 /** Solid fill — used for stepper/timeline nodes that need to read as "current". */
@@ -57,6 +62,9 @@ export const NODE_TONE_CLASSES: Record<StatusTone, string> = {
   success: "border-success bg-success text-white",
   warning: "border-warning bg-warning text-white",
   danger: "border-danger bg-danger text-white",
+  info: "border-teal-600 bg-teal-600 text-white",
+  accent: "border-violet-600 bg-violet-600 text-white",
+  neutral: "border-muted bg-muted text-white",
 };
 
 // The five stages a shipment always progresses through; delayed/exception are incidents

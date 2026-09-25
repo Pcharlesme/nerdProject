@@ -2,6 +2,7 @@
 
 import { BarChart3, CheckCircle2, Clock, Package } from "lucide-react";
 import { useAppData } from "@/providers/AppDataProvider";
+import { DeliveryPerformancePanel } from "@/components/staff/DeliveryPerformancePanel";
 
 export default function StaffAnalyticsPage() {
   const { shipments } = useAppData();
@@ -26,8 +27,12 @@ export default function StaffAnalyticsPage() {
           <StatTile icon={Clock} label="On-time rate" value={`${onTimeRate}%`} tone="warning" />
         </div>
 
+        <div className="mt-6">
+          <DeliveryPerformancePanel />
+        </div>
+
         <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary">
+          <span className="flex size-12 items-center justify-center rounded-full bg-text/5 text-text">
             <BarChart3 className="size-6" aria-hidden="true" />
           </span>
           <p className="font-medium text-text">More analytics are coming soon</p>
@@ -44,15 +49,15 @@ function StatTile({
   icon: Icon,
   label,
   value,
-  tone = "primary",
+  tone = "neutral",
 }: {
   icon: typeof Package;
   label: string;
   value: number | string;
-  tone?: "primary" | "success" | "warning";
+  tone?: "neutral" | "success" | "warning";
 }) {
   const toneClasses = {
-    primary: "bg-primary/10 text-primary",
+    neutral: "bg-text/5 text-text",
     success: "bg-success-bg text-success",
     warning: "bg-warning-bg text-warning",
   }[tone];
