@@ -58,7 +58,7 @@ export function EditShipmentPanel({ shipment }: EditShipmentPanelProps) {
   };
 
   return (
-    <CollapsiblePanel icon={Pencil} title="Edit shipment" subtitle="Update route, ETA and shipment details">
+    <CollapsiblePanel icon={Pencil} title="Edit shipment" subtitle="Update route, ETA and shipment details" tone="cta">
       {({ close }) => (
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
           <div className="grid gap-4 md:grid-cols-2">
@@ -115,7 +115,7 @@ export function EditShipmentPanel({ shipment }: EditShipmentPanelProps) {
             <Button type="button" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" loading={state === "saving"} disabled={state === "saving"}>
               Save changes
             </Button>
           </div>

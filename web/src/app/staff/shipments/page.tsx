@@ -59,7 +59,7 @@ function ShipmentsPageContent() {
 
           <Link
             href="/staff/shipments/new"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cta px-4 text-sm font-medium text-on-primary transition-colors hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <Plus className="size-4" aria-hidden="true" />
             Create shipment
@@ -169,7 +169,7 @@ function ShipmentRow({ shipment }: { shipment: Shipment }) {
   return (
     <tr className="border-b border-border text-sm transition-colors last:border-0 hover:bg-background">
       <td className="px-5 py-5">
-        <Link href={`/staff/shipments/${shipment.trackingNumber}`} className="font-semibold text-text hover:text-primary">
+        <Link href={`/staff/shipments/${shipment.trackingNumber}`} className="font-semibold text-text hover:underline">
           {shipment.trackingNumber}
         </Link>
         <p className="mt-1 text-xs text-muted">{shipment.referenceCode}</p>
@@ -186,7 +186,7 @@ function ShipmentRow({ shipment }: { shipment: Shipment }) {
       <td className="px-5 py-5">
         <Link
           href={`/staff/shipments/${shipment.trackingNumber}`}
-          className="inline-flex items-center rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-background"
+          className="inline-flex items-center rounded-lg border border-border px-3 py-2 text-xs font-semibold text-cta transition-colors hover:border-cta/40 hover:bg-cta-soft"
         >
           View
         </Link>
@@ -218,7 +218,7 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
 
       <Link
         href={`/staff/shipments/${shipment.trackingNumber}`}
-        className="block w-full rounded-lg border border-border py-2.5 text-center text-sm font-medium text-primary transition-colors hover:bg-background"
+        className="block w-full rounded-lg border border-border py-2.5 text-center text-sm font-medium text-cta transition-colors hover:border-cta/40 hover:bg-cta-soft"
       >
         View shipment
       </Link>

@@ -9,7 +9,7 @@ import { useAppData } from "@/providers/AppDataProvider";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { DeliveryPerformancePanel } from "@/components/staff/DeliveryPerformancePanel";
 import { STATUS_LABEL } from "@/lib/shipmentStatus";
-import { formatDateShort } from "@/lib/formatDate";
+import { formatDateShort, formatDateTime } from "@/lib/formatDate";
 import { downloadCsv } from "@/lib/exportCsv";
 import type { Shipment, ShipmentStatus } from "@/types";
 
@@ -17,6 +17,7 @@ type OrderFilter = "ALL" | ShipmentStatus;
 
 const FILTERS: { key: OrderFilter; label: string }[] = [
   { key: "ALL", label: "All" },
+  { key: "COLLECTED", label: "Collected" },
   { key: "IN_TRANSIT", label: "In transit" },
   { key: "DELIVERED", label: "Delivered" },
   { key: "DELAYED", label: "Delayed" },
@@ -66,6 +67,7 @@ export default function StaffDashboardPage() {
         { header: "Estimated delivery", value: (s) => s.estimatedDeliveryAt },
         { header: "Service level", value: (s) => s.serviceLevel },
         { header: "Reference", value: (s) => s.referenceCode },
+        { header: "Last updated", value: (s) => s.updatedAt },
       ],
     );
   };
@@ -113,7 +115,7 @@ export default function StaffDashboardPage() {
 
             <Link
               href="/staff/shipments/new"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-text px-4 text-sm font-medium text-white transition-colors hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-cta px-4 text-sm font-medium text-white transition-colors hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <Plus className="size-4" aria-hidden="true" />
               Create shipment
@@ -152,12 +154,18 @@ export default function StaffDashboardPage() {
                     onClick={() => setActiveFilter(filter.key)}
                     className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
                       active
-                        ? "border-text bg-text text-white"
-                        : "border-border text-text hover:border-text/30"
+                        ? "border-cta bg-cta text-white"
+                        : "border-border text-text hover:border-cta/30"
                     }`}
                   >
                     {filter.label}
-                    <span className={active ? "text-white/70" : "text-muted"}>{count}</span>
+                    <span
+                      className={`flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-xs ${
+                        active ? "bg-white/20 text-white" : "bg-background text-muted"
+                      }`}
+                    >
+                      {count}
+                    </span>
                   </button>
                 );
               })}
@@ -167,7 +175,7 @@ export default function StaffDashboardPage() {
                 aria-label={sortNewestFirst ? "Sorted newest first — click for oldest first" : "Sorted oldest first — click for newest first"}
                 title={sortNewestFirst ? "Newest first" : "Oldest first"}
                 className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border transition-colors ${
-                  sortNewestFirst ? "border-border text-muted hover:border-text/30 hover:text-text" : "border-text bg-text text-white"
+                  sortNewestFirst ? "border-border text-muted hover:border-cta/30 hover:text-cta" : "border-cta bg-cta text-white"
                 }`}
               >
                 <ArrowUpDown className="size-4" aria-hidden="true" />
@@ -193,6 +201,7 @@ export default function StaffDashboardPage() {
                       <th className="px-5 py-4">Service</th>
                       <th className="px-5 py-4">Est. delivery</th>
                       <th className="px-5 py-4">Status</th>
+                      <th className="px-5 py-4">Last updated</th>
                       <th className="px-5 py-4" />
                     </tr>
                   </thead>
@@ -253,11 +262,12 @@ function OrderRow({
       <td className="px-5 py-5">
         <StatusBadge status={shipment.status} />
       </td>
+      <td className="px-5 py-5 text-muted">{formatDateTime(shipment.updatedAt)}</td>
       <td className="px-5 py-5">
         <div className="flex items-center justify-end gap-2">
           <Link
             href={`/staff/shipments/${shipment.trackingNumber}`}
-            className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text transition-colors hover:border-text/40 hover:text-text"
+            className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text transition-colors hover:border-cta/40 hover:text-cta"
           >
             See more
           </Link>
@@ -302,11 +312,12 @@ function OrderCard({
       <p className="text-sm text-muted">
         {shipment.serviceLevel} · Est. {formatDateShort(shipment.estimatedDeliveryAt)}
       </p>
+      <p className="text-xs text-muted">Last updated {formatDateTime(shipment.updatedAt)}</p>
 
       <div className="flex items-center gap-2 pt-1">
         <Link
           href={`/staff/shipments/${shipment.trackingNumber}`}
-          className="inline-flex flex-1 items-center justify-center rounded-full border border-border px-3 py-2 text-sm font-medium text-text transition-colors hover:border-text/40 hover:text-text"
+          className="inline-flex flex-1 items-center justify-center rounded-full border border-border px-3 py-2 text-sm font-medium text-text transition-colors hover:border-cta/40 hover:text-cta"
         >
           See more
         </Link>

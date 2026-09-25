@@ -53,7 +53,7 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
               aria-label="Choose a date to view"
               aria-expanded={calendarOpen}
               className={`flex size-9 items-center justify-center rounded-full border transition-colors ${
-                calendarOpen ? "border-text bg-text text-white" : "border-border text-muted hover:border-text/30 hover:text-text"
+                calendarOpen ? "border-text bg-cta text-white" : "border-border text-muted hover:border-cta/30 hover:text-cta"
               }`}
             >
               <Calendar className="size-4" aria-hidden="true" />
@@ -85,7 +85,7 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
             type="button"
             onClick={() => setExpanded(true)}
             aria-label="Expand chart"
-            className="flex size-9 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-text/30 hover:text-text"
+            className="flex size-9 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-cta/30 hover:text-cta"
           >
             <Maximize2 className="size-4" aria-hidden="true" />
           </button>

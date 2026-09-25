@@ -41,7 +41,7 @@ export default function StaffShipmentDetailsPage() {
             </p>
             <Link
               href="/staff/shipments"
-              className="mt-4 inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover"
+              className="mt-4 inline-flex h-10 items-center rounded-lg bg-cta px-4 text-sm font-medium text-on-primary transition-colors hover:opacity-90"
             >
               Back to shipments
             </Link>

@@ -305,6 +305,37 @@ export const SHIPMENTS: Shipment[] = [
       },
     ],
   },
+  {
+    // Deliberately has zero tracking events — demonstrates the timeline's empty
+    // state (a brand-new record before the carrier has collected it yet).
+    trackingNumber: "TRK-DEMO-006",
+    status: "CREATED",
+    originCity: "Glasgow",
+    originRegion: "United Kingdom",
+    destinationCity: "Belfast",
+    destinationRegion: "United Kingdom",
+    currentLocation: "Glasgow, United Kingdom",
+    estimatedDeliveryAt: "2026-09-29T18:00:00Z",
+    serviceLevel: "Standard",
+    packageCount: 1,
+    referenceCode: "PO-81734",
+    weightKg: 3.4,
+    sender: {
+      name: "Niamh Robertson",
+      email: "niamh.robertson@example.com",
+      phone: "+44 7700 900876",
+      address: "21 Sauchiehall Street, Glasgow, United Kingdom",
+    },
+    receiver: {
+      name: "Aaron Kelly",
+      phone: "+44 7700 900432",
+      address: "10 Botanic Avenue, Belfast, United Kingdom",
+    },
+    createdAt: "2026-09-25T09:00:00Z",
+    updatedAt: "2026-09-25T09:00:00Z",
+    internalNotes: [],
+    events: [],
+  },
 ];
 
 // === Fictional demo enquiries — deliberately span both states and several categories.====

@@ -85,7 +85,7 @@ export function PerformanceCalendar({ availableDates, selected, onSelect }: Perf
               aria-label={isAvailable ? `${iso} — view this day` : `${iso} — no performance data`}
               className={`flex size-9 items-center justify-center rounded-full text-sm transition-colors ${
                 isSelected
-                  ? "bg-text font-semibold text-white"
+                  ? "bg-cta font-semibold text-white"
                   : isAvailable
                     ? "text-text hover:bg-background"
                     : "cursor-not-allowed text-border"

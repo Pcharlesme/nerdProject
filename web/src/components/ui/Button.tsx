@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type ButtonVariant = "primary" | "cta" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,6 +17,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
     "bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active",
+  // Navy — the staff area's one consistent action color, distinct from the brand
+  // indigo ("primary") reserved for the customer-facing site and the logo.
+  cta: "bg-cta text-on-primary hover:opacity-90 active:opacity-80",
   secondary: "bg-surface text-text border border-border hover:bg-background",
   ghost: "bg-transparent text-text hover:bg-background",
   danger: "bg-danger text-white hover:opacity-90 active:opacity-80",

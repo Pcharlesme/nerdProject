@@ -11,13 +11,21 @@ interface CollapsiblePanelProps {
   title: string;
   subtitle: string;
   defaultOpen?: boolean;
+  /** "primary" (brand indigo) for customer-facing usage; "cta" (navy) for staff. */
+  tone?: "primary" | "cta";
   children: ReactNode | ((controls: { close: () => void }) => ReactNode);
 }
 
+const TONE_CLASSES = {
+  primary: { hover: "hover:border-primary/40 hover:bg-primary/5", icon: "bg-primary/10 text-primary", chevron: "group-hover:text-primary" },
+  cta: { hover: "hover:border-cta/40 hover:bg-cta-soft", icon: "bg-cta/10 text-cta", chevron: "group-hover:text-cta" },
+} as const;
+
 /** A trigger row that expands into an inline panel — the shared "no dialogs" interaction pattern. */
-export function CollapsiblePanel({ icon: Icon, title, subtitle, defaultOpen = false, children }: CollapsiblePanelProps) {
+export function CollapsiblePanel({ icon: Icon, title, subtitle, defaultOpen = false, tone = "primary", children }: CollapsiblePanelProps) {
   const [open, setOpen] = useState(defaultOpen);
   const panelId = useId();
+  const toneClasses = TONE_CLASSES[tone];
 
   return (
     <div className="w-full">
@@ -26,10 +34,10 @@ export function CollapsiblePanel({ icon: Icon, title, subtitle, defaultOpen = fa
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-controls={panelId}
-        className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface px-5 py-4 text-left shadow-sm transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-primary"
+        className={`group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface px-5 py-4 text-left shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${toneClasses.hover}`}
       >
         <span className="flex items-center gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${toneClasses.icon}`}>
             <Icon className="size-5" aria-hidden="true" />
           </span>
           <span>
@@ -38,7 +46,7 @@ export function CollapsiblePanel({ icon: Icon, title, subtitle, defaultOpen = fa
           </span>
         </span>
         <ChevronDown
-          className={`size-5 shrink-0 text-muted transition-transform group-hover:text-primary ${open ? "rotate-180" : ""}`}
+          className={`size-5 shrink-0 text-muted transition-transform ${toneClasses.chevron} ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
       </button>

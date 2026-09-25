@@ -56,7 +56,7 @@ export function DeliveryPerformanceChart({ highlightDate = DEFAULT_HIGHLIGHT_DAT
                   <span className="mb-1 whitespace-nowrap text-xs font-semibold text-text">{shortLabel(day.date)}</span>
                 )}
                 <div
-                  className={`w-full rounded-t-md transition-colors ${isHighlight ? "bg-text" : "bg-text/10"}`}
+                  className={`w-full rounded-t-md transition-colors ${isHighlight ? "bg-cta" : "bg-cta/10"}`}
                   style={{ height: `${day.value}%` }}
                   title={`${shortLabel(day.date)}: ${day.value}% on-time`}
                 />

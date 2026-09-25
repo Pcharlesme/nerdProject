@@ -84,7 +84,7 @@ export function StaffSidebar() {
         </Link>
 
         <div className="flex items-center gap-2.5 rounded-2xl border border-border p-2.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-text/10 text-sm font-semibold text-text">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-cta/10 text-sm font-semibold text-cta">
             JC
           </span>
           <div className="min-w-0 flex-1" title={email ?? undefined}>
@@ -136,9 +136,9 @@ function SidebarNav({
       <Link
         href={DASHBOARD_LINK.href}
         onClick={onNavigate}
-        className={`flex items-center gap-3 rounded-2xl px-4 py-5 text-sm font-semibold transition-colors ${
+        className={`flex items-center gap-3 rounded-2xl px-4 py-8 text-sm font-semibold transition-colors ${
           isActive(DASHBOARD_LINK.href)
-            ? "bg-text text-white"
+            ? "bg-cta text-white"
             : "border border-border text-text hover:bg-background"
         }`}
       >
@@ -156,8 +156,8 @@ function SidebarNav({
               onClick={onNavigate}
               className={`relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border p-3.5 text-sm font-medium transition-colors ${
                 isActive(link.href)
-                  ? "border-text/20 bg-text/5 text-text"
-                  : "border-border text-text hover:border-text/30 hover:bg-background"
+                  ? "border-cta/30 bg-cta/5 text-cta"
+                  : "border-border text-text hover:border-cta/30 hover:bg-background"
               }`}
             >
               {badge > 0 && (
@@ -202,7 +202,7 @@ function ExceptionsCard({ count }: { count: number }) {
 
       <Link
         href={clear ? "/staff/shipments" : "/staff/shipments?status=EXCEPTION"}
-        className="mt-3 flex items-center justify-center gap-1.5 rounded-full bg-text px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+        className="mt-3 flex items-center justify-center gap-1.5 rounded-full bg-cta px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
       >
         {clear ? "View shipments" : "Review now"}
         <ArrowRight className="size-3.5" aria-hidden="true" />

@@ -36,6 +36,7 @@ export function AddInternalNotePanel({ shipment }: { shipment: Shipment }) {
       icon={StickyNote}
       title="Add internal note"
       subtitle="Staff only — never shown on the public tracking page"
+      tone="cta"
     >
       {({ close }) => (
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -67,7 +68,7 @@ export function AddInternalNotePanel({ shipment }: { shipment: Shipment }) {
             <Button type="button" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" loading={state === "saving"} disabled={state === "saving"}>
               Add note
             </Button>
           </div>

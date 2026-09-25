@@ -51,6 +51,7 @@ export function AddTrackingEventPanel({ shipment }: { shipment: Shipment }) {
       icon={PlusCircle}
       title="Add tracking event"
       subtitle="Appends a new customer-visible update — history is never overwritten"
+      tone="cta"
     >
       {({ close }) => (
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -125,7 +126,7 @@ export function AddTrackingEventPanel({ shipment }: { shipment: Shipment }) {
             <Button type="button" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" loading={state === "saving"} disabled={state === "saving"}>
               Add tracking event
             </Button>
           </div>

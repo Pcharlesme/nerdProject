@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, CheckCircle2, Clock, Package } from "lucide-react";
+import { BarChart3, CheckCircle2, Clock, Package, Truck } from "lucide-react";
 import { useAppData } from "@/providers/AppDataProvider";
 import { DeliveryPerformancePanel } from "@/components/staff/DeliveryPerformancePanel";
 
@@ -8,7 +8,9 @@ export default function StaffAnalyticsPage() {
   const { shipments } = useAppData();
 
   const total = shipments.length;
+  const inTransit = shipments.filter((s) => s.status === "IN_TRANSIT").length;
   const delivered = shipments.filter((s) => s.status === "DELIVERED").length;
+  const delayed = shipments.filter((s) => s.status === "DELAYED").length;
   const delayedOrException = shipments.filter((s) => s.status === "DELAYED" || s.status === "EXCEPTION").length;
   const onTimeRate = total === 0 ? 0 : Math.round(((total - delayedOrException) / total) * 100);
 
@@ -21,9 +23,11 @@ export default function StaffAnalyticsPage() {
       </div>
 
       <div className="px-5 py-6 lg:px-8">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
           <StatTile icon={Package} label="Total shipments" value={total} />
+          <StatTile icon={Truck} label="In transit" value={inTransit} tone="primary" />
           <StatTile icon={CheckCircle2} label="Delivered" value={delivered} tone="success" />
+          <StatTile icon={Clock} label="Delayed" value={delayed} tone="warning" />
           <StatTile icon={Clock} label="On-time rate" value={`${onTimeRate}%`} tone="warning" />
         </div>
 
@@ -32,7 +36,7 @@ export default function StaffAnalyticsPage() {
         </div>
 
         <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-text/5 text-text">
+          <span className="flex size-12 items-center justify-center rounded-full bg-cta/10 text-cta">
             <BarChart3 className="size-6" aria-hidden="true" />
           </span>
           <p className="font-medium text-text">More analytics are coming soon</p>
@@ -54,10 +58,11 @@ function StatTile({
   icon: typeof Package;
   label: string;
   value: number | string;
-  tone?: "neutral" | "success" | "warning";
+  tone?: "neutral" | "primary" | "success" | "warning";
 }) {
   const toneClasses = {
-    neutral: "bg-text/5 text-text",
+    neutral: "bg-cta/10 text-cta",
+    primary: "bg-primary/10 text-primary",
     success: "bg-success-bg text-success",
     warning: "bg-warning-bg text-warning",
   }[tone];

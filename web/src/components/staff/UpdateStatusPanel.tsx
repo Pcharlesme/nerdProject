@@ -31,7 +31,7 @@ export function UpdateStatusPanel({ shipment }: { shipment: Shipment }) {
   };
 
   return (
-    <CollapsiblePanel icon={RefreshCw} title="Update status" subtitle="Move this shipment to a new state">
+    <CollapsiblePanel icon={RefreshCw} title="Update status" subtitle="Move this shipment to a new state" tone="cta">
       {({ close }) => (
         <form
           onSubmit={handleSubmit}
@@ -78,7 +78,7 @@ export function UpdateStatusPanel({ shipment }: { shipment: Shipment }) {
             <Button type="button" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" loading={state === "saving"} disabled={state === "saving"}>
               Update status
             </Button>
           </div>

@@ -14,6 +14,12 @@
   --color-primary-active: #312e81;
   --color-on-primary: #ffffff;
 
+  /* ---- Color: staff CTA (navy, not pure black — used for every staff action/button
+     so the whole staff area reads as one consistent accent instead of a mix of
+     black and the brand indigo, which is reserved for "in transit" + the logo). ---- */
+  --color-cta: #172554;
+  --color-cta-soft: #eff3fb;
+
   /* ---- Color: semantic (text/bg/border triplets, each pair AA-contrast checked) ---- */
   --color-success: #16a34a;
   --color-success-bg: #f0fdf4;

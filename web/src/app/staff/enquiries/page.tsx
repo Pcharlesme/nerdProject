@@ -57,7 +57,7 @@ export default function StaffEnquiriesPage() {
               type="button"
               onClick={() => setFilter(option)}
               className={`flex-1 cursor-pointer rounded-md px-3 py-2 font-medium transition-colors ${
-                filter === option ? "bg-primary text-on-primary" : "text-muted hover:bg-background hover:text-text"
+                filter === option ? "bg-cta text-on-primary" : "text-muted hover:bg-background hover:text-text"
               }`}
             >
               {option === "ALL" ? "All" : option === "OPEN" ? "Open" : "Resolved"}
@@ -106,7 +106,7 @@ function EnquiryRow({ enquiry }: { enquiry: Enquiry }) {
             <p className="text-sm font-medium text-text">{CATEGORY_LABEL[enquiry.category]}</p>
             <Link
               href={`/staff/shipments/${enquiry.trackingNumber}`}
-              className="font-mono text-xs text-primary hover:text-primary-hover"
+              className="font-mono text-xs text-cta hover:underline"
             >
               {enquiry.trackingNumber}
             </Link>

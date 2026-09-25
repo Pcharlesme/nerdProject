@@ -165,7 +165,7 @@ export default function StaffLogin() {
             </div>
           )}
 
-          <Button type="submit" size="lg" className="w-full" loading={isSubmitting} disabled={isSubmitting}>
+          <Button type="submit" variant="cta" size="lg" className="w-full" loading={isSubmitting} disabled={isSubmitting}>
             Sign in
           </Button>
 

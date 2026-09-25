@@ -275,7 +275,7 @@ export default function CreateShipmentPage() {
             >
               Cancel
             </Link>
-            <Button type="submit" size="lg" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" size="lg" loading={state === "saving"} disabled={state === "saving"}>
               Create shipment
             </Button>
           </div>
