@@ -1,42 +1,49 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useAppData } from "@/providers/AppDataProvider";
-import type { Shipment } from "@/types";
+import { ApiError } from "@/api";
+import { useGetTrackingDetail } from "@/hooks/useGetTrackingDetail";
+import type { PublicShipment } from "@/types";
 
-type LookupStatus = "idle" | "loading" | "not-found" | "found";
+type LookupStatus = "idle" | "loading" | "not-found" | "error" | "found";
 
-interface LookupState {
+interface LookupResult {
   status: LookupStatus;
-  shipment: Shipment | null;
+  shipment: PublicShipment | null;
   trackingNumber: string | null;
+  search: (trackingNumber: string) => void;
+  reset: () => void;
 }
 
-const IDLE_STATE: LookupState = {
-  status: "idle",
-  shipment: null,
-  trackingNumber: null,
-};
+/** Owns the public tracking-search flow on top of `useGetTrackingDetail`: a 404 from
+ * the backend surfaces as "not-found" (a normal, expected outcome), while any other
+ * failure (network down, 5xx) surfaces as "error" so the UI can tell them apart. */
+export function useTrackingLookup(): LookupResult {
+  const [trackingNumber, setTrackingNumber] = useState<string | null>(null);
+  const query = useGetTrackingDetail(trackingNumber);
 
-/** Owns the public tracking-search flow: fires the (mock) lookup and tracks idle/loading/not-found/found. */
-export function useTrackingLookup() {
-  const { lookupShipment } = useAppData();
-  const [state, setState] = useState<LookupState>(IDLE_STATE);
+  const search = useCallback((value: string) => {
+    setTrackingNumber(value.trim().toUpperCase());
+  }, []);
 
-  const search = useCallback(
-    async (trackingNumber: string) => {
-      setState({ status: "loading", shipment: null, trackingNumber });
-      const shipment = await lookupShipment(trackingNumber);
-      setState(
-        shipment
-          ? { status: "found", shipment, trackingNumber }
-          : { status: "not-found", shipment: null, trackingNumber },
-      );
-    },
-    [lookupShipment],
-  );
+  const reset = useCallback(() => setTrackingNumber(null), []);
 
-  const reset = useCallback(() => setState(IDLE_STATE), []);
+  let status: LookupStatus = "idle";
+  if (trackingNumber) {
+    if (query.isLoading) {
+      status = "loading";
+    } else if (query.isError) {
+      status = query.error instanceof ApiError && query.error.isNotFound ? "not-found" : "error";
+    } else if (query.data) {
+      status = "found";
+    }
+  }
 
-  return { ...state, search, reset };
+  return {
+    status,
+    shipment: query.data ?? null,
+    trackingNumber,
+    search,
+    reset,
+  };
 }

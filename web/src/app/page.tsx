@@ -13,7 +13,7 @@ import { useTrackingLookup } from "@/hooks/useTrackingLookup";
 
 export default function Home() {
   const { status, shipment, trackingNumber, search } = useTrackingLookup();
-  const hasSearched = status === "not-found" || status === "found";
+  const hasSearched = status === "not-found" || status === "error" || status === "found";
   const isIdle = status === "idle";
   const prefersReducedMotion = useReducedMotion();
 
@@ -68,6 +68,16 @@ export default function Home() {
                   {trackingNumber}
                 </span>
                 . Double-check the tracking number and try again.
+              </div>
+            )}
+
+            {status === "error" && (
+              <div
+                role="alert"
+                className="w-full max-w-2xl rounded-lg border border-danger-border bg-danger-bg p-4 text-sm text-danger shadow-sm"
+              >
+                Something went wrong looking up that shipment. Please try again in a
+                moment.
               </div>
             )}
 

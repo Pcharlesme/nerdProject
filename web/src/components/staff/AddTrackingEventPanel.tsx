@@ -6,10 +6,8 @@ import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { STATUS_OPTIONS } from "@/lib/shipmentStatus";
-import { useAppData } from "@/providers/AppDataProvider";
-import type { Shipment, ShipmentStatus } from "@/types";
-
-type SaveState = "idle" | "saving" | "success" | "error";
+import { useAddTrackingEvent } from "@/hooks/useAddTrackingEvent";
+import type { StaffShipment, ShipmentStatus } from "@/types";
 
 function nowForInput(): string {
   const now = new Date();
@@ -17,34 +15,35 @@ function nowForInput(): string {
   return now.toISOString().slice(0, 16);
 }
 
-export function AddTrackingEventPanel({ shipment }: { shipment: Shipment }) {
-  const { addTrackingEvent } = useAppData();
+export function AddTrackingEventPanel({ shipment }: { shipment: StaffShipment }) {
+  const addTrackingEvent = useAddTrackingEvent(shipment.trackingNumber);
   const [status, setStatus] = useState<ShipmentStatus>(shipment.status);
   const [location, setLocation] = useState(shipment.currentLocation);
   const [occurredAt, setOccurredAt] = useState(nowForInput());
   const [message, setMessage] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [state, setState] = useState<SaveState>("idle");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!location.trim() || !message.trim() || !occurredAt) {
-      setError("Location, date/time and message are all required.");
+      setValidationError("Location, date/time and message are all required.");
       return;
     }
 
-    setError(null);
-    setState("saving");
-    await addTrackingEvent(shipment.trackingNumber, {
-      status,
-      location: location.trim(),
-      occurredAt: new Date(occurredAt).toISOString(),
-      message: message.trim(),
-    });
-    setState("success");
-    setMessage("");
+    setValidationError(null);
+    addTrackingEvent.mutate(
+      {
+        status,
+        location: location.trim(),
+        occurredAt: new Date(occurredAt).toISOString(),
+        message: message.trim(),
+      },
+      { onSuccess: () => setMessage("") },
+    );
   };
+
+  const error = validationError ?? (addTrackingEvent.isError ? "Something went wrong adding this event." : null);
 
   return (
     <CollapsiblePanel
@@ -120,13 +119,13 @@ export function AddTrackingEventPanel({ shipment }: { shipment: Shipment }) {
               {error}
             </p>
           )}
-          {state === "success" && <p className="text-sm text-success">Event added to the timeline.</p>}
+          {addTrackingEvent.isSuccess && <p className="text-sm text-success">Event added to the timeline.</p>}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" variant="cta" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" loading={addTrackingEvent.isPending} disabled={addTrackingEvent.isPending}>
               Add tracking event
             </Button>
           </div>

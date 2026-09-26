@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { isValidTrackingNumberFormat } from "@/constant/mockData";
+import { isValidTrackingNumberFormat } from "@/lib/trackingNumber";
 
 interface TrackingSearchProps {
   onSearch: (trackingNumber: string) => void;

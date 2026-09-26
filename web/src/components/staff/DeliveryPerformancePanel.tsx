@@ -2,14 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Calendar, Maximize2, X } from "lucide-react";
-import { DELIVERY_PERFORMANCE_DATA, DEFAULT_HIGHLIGHT_DATE, DeliveryPerformanceChart } from "./DeliveryPerformanceChart";
+import { AlertCircle, Calendar, Maximize2, X } from "lucide-react";
+import { useDeliveryPerformance } from "@/hooks/useDeliveryPerformance";
+import { DeliveryPerformanceChart } from "./DeliveryPerformanceChart";
 import { PerformanceCalendar } from "./PerformanceCalendar";
 
-const AVAILABLE_DATES = DELIVERY_PERFORMANCE_DATA.map((d) => d.date);
-
 export function DeliveryPerformancePanel({ title = "Delivery performance" }: { title?: string }) {
-  const [highlightDate, setHighlightDate] = useState(DEFAULT_HIGHLIGHT_DATE);
+  const { data, isLoading, isError } = useDeliveryPerformance();
+  const days = data?.days ?? [];
+  const defaultHighlightDate = days[days.length - 1]?.date;
+
+  const [highlightDate, setHighlightDate] = useState<string | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
@@ -41,6 +44,8 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
     return () => document.removeEventListener("keydown", handleKey);
   }, [expanded]);
 
+  const activeHighlight = highlightDate ?? defaultHighlightDate;
+
   return (
     <section className="rounded-2xl border border-border bg-surface p-6">
       <div className="flex items-center justify-between">
@@ -52,7 +57,8 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
               onClick={() => setCalendarOpen((value) => !value)}
               aria-label="Choose a date to view"
               aria-expanded={calendarOpen}
-              className={`flex size-9 items-center justify-center rounded-full border transition-colors ${
+              disabled={!data}
+              className={`flex size-9 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                 calendarOpen ? "border-text bg-cta text-white" : "border-border text-muted hover:border-cta/30 hover:text-cta"
               }`}
             >
@@ -60,7 +66,7 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
             </button>
 
             <AnimatePresence>
-              {calendarOpen && (
+              {calendarOpen && data && (
                 <motion.div
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -69,8 +75,8 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
                   className="absolute right-0 top-11 z-20"
                 >
                   <PerformanceCalendar
-                    availableDates={AVAILABLE_DATES}
-                    selected={highlightDate}
+                    availableDates={data.availableDates}
+                    selected={activeHighlight ?? data.availableDates[data.availableDates.length - 1] ?? ""}
                     onSelect={(date) => {
                       setHighlightDate(date);
                       setCalendarOpen(false);
@@ -85,7 +91,8 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
             type="button"
             onClick={() => setExpanded(true)}
             aria-label="Expand chart"
-            className="flex size-9 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-cta/30 hover:text-cta"
+            disabled={!data}
+            className="flex size-9 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-cta/30 hover:text-cta disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Maximize2 className="size-4" aria-hidden="true" />
           </button>
@@ -93,11 +100,20 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
       </div>
 
       <div className="mt-6">
-        <DeliveryPerformanceChart highlightDate={highlightDate} />
+        {isError ? (
+          <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-sm text-danger">
+            <AlertCircle className="size-6" aria-hidden="true" />
+            Couldn&apos;t load delivery performance.
+          </div>
+        ) : isLoading ? (
+          <ChartSkeleton />
+        ) : (
+          <DeliveryPerformanceChart days={days} highlightDate={activeHighlight} />
+        )}
       </div>
 
       <AnimatePresence>
-        {expanded && (
+        {expanded && data && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -129,12 +145,27 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
                 </button>
               </div>
               <div className="mt-6">
-                <DeliveryPerformanceChart highlightDate={highlightDate} className="h-96" />
+                <DeliveryPerformanceChart days={days} highlightDate={activeHighlight} className="h-96" />
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
     </section>
+  );
+}
+
+function ChartSkeleton() {
+  return (
+    <div role="status" className="flex h-64 items-end gap-2 sm:gap-3" aria-label="Loading delivery performance">
+      {Array.from({ length: 14 }).map((_, index) => (
+        <div
+          key={index}
+          className="flex-1 animate-pulse rounded-t-md bg-background"
+          style={{ height: `${30 + ((index * 17) % 60)}%` }}
+          aria-hidden="true"
+        />
+      ))}
+    </div>
   );
 }

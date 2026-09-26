@@ -18,7 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useStaffAuth } from "@/providers/StaffAuthProvider";
-import { useAppData } from "@/providers/AppDataProvider";
+import { useDashboard } from "@/hooks/useDashboard";
 import { Logo, Wordmark } from "@/components/ui/Logo";
 
 const NAV_LINKS: { href: string; label: string; icon: LucideIcon }[] = [
@@ -32,12 +32,18 @@ const DASHBOARD_LINK = { href: "/staff/dashboard", label: "Dashboard", icon: Lay
 export function StaffSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { email, logout } = useStaffAuth();
-  const { shipments, enquiries } = useAppData();
+  const { name, email, logout } = useStaffAuth();
+  const { data: dashboard } = useDashboard();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const openEnquiries = enquiries.filter((e) => e.status === "OPEN").length;
-  const exceptions = shipments.filter((s) => s.status === "EXCEPTION").length;
+  const openEnquiries = dashboard?.openEnquiryCount ?? 0;
+  const exceptions = dashboard?.byStatus.EXCEPTION ?? 0;
+  const initials = (name ?? "Staff")
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
@@ -85,10 +91,10 @@ export function StaffSidebar() {
 
         <div className="flex items-center gap-2.5 rounded-2xl border border-border p-2.5">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-cta/10 text-sm font-semibold text-cta">
-            JC
+            {initials}
           </span>
           <div className="min-w-0 flex-1" title={email ?? undefined}>
-            <p className="truncate text-sm font-semibold text-text">John Charles</p>
+            <p className="truncate text-sm font-semibold text-text">{name ?? "Staff"}</p>
             <p className="text-xs text-muted">Staff</p>
           </div>
           <Link

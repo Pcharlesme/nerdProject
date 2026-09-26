@@ -4,9 +4,9 @@ import { InfoField, SectionLabel } from "@/components/ui/InfoField";
 import { StatusStepper } from "@/components/shipments/StatusStepper";
 import { TrackingTimeline } from "@/components/shipments/TrackingTimeline";
 import { formatDateTime } from "@/lib/formatDate";
-import type { Shipment } from "@/types";
+import type { PublicShipment } from "@/types";
 
-export function TrackingResult({ shipment }: { shipment: Shipment }) {
+export function TrackingResult({ shipment }: { shipment: PublicShipment }) {
   return (
     <div className="w-full max-w-2xl rounded-lg border border-border bg-surface p-6 text-left shadow-md sm:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">

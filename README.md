@@ -52,7 +52,7 @@ npm run test:server
 
 The two workspace READMEs each document their own decisions and trade-offs in detail (`web/README.md` §8/§10, `server/README.md` §10/§11). At the project level:
 
-- The frontend currently runs on an in-memory mock data layer shaped to match the backend's real API contract one-for-one (documented in [`requirement/backend-integration-notes.md`](requirement/backend-integration-notes.md)) — wiring the frontend to actually call the now-working backend is the next step, not yet done.
+- The frontend is fully wired to the real backend (Axios + TanStack Query; no runtime mock data remains) — see [`requirement/api-integration.md`](requirement/api-integration.md) for the full endpoint ↔ hook ↔ consumer map. [`requirement/backend-integration-notes.md`](requirement/backend-integration-notes.md) is kept as historical context: the contract it describes for the (then-unbuilt) backend, written before either side existed.
 - The backend itself is fully built, tested (45 automated tests against a real Postgres instance), and has been run and smoke-tested end-to-end locally, including in production mode (`npm start`) — but has not yet been deployed to a public URL.
 - This project's own review checklists — [`requirement/customerChecklist.md`](requirement/customerChecklist.md), [`requirement/staffChecklist.md`](requirement/staffChecklist.md), [`requirement/backendChecklist.md`](requirement/backendChecklist.md) — track exactly what's been verified against the task brief, and what remains, rather than just asserting completeness.
 

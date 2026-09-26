@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Host_Grotesk } from "next/font/google";
-import { AppDataProvider } from "@/providers/AppDataProvider";
+import { QueryProvider } from "@/providers/QueryProvider";
 import "./globals.css";
 
 const hostGrotesk = Host_Grotesk({
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${hostGrotesk.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <AppDataProvider>{children}</AppDataProvider>
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

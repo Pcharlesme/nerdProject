@@ -1,17 +1,17 @@
 "use client";
 
 import { BarChart3, CheckCircle2, Clock, Package, Truck } from "lucide-react";
-import { useAppData } from "@/providers/AppDataProvider";
+import { useDashboard } from "@/hooks/useDashboard";
 import { DeliveryPerformancePanel } from "@/components/staff/DeliveryPerformancePanel";
 
 export default function StaffAnalyticsPage() {
-  const { shipments } = useAppData();
+  const { data: dashboard } = useDashboard();
 
-  const total = shipments.length;
-  const inTransit = shipments.filter((s) => s.status === "IN_TRANSIT").length;
-  const delivered = shipments.filter((s) => s.status === "DELIVERED").length;
-  const delayed = shipments.filter((s) => s.status === "DELAYED").length;
-  const delayedOrException = shipments.filter((s) => s.status === "DELAYED" || s.status === "EXCEPTION").length;
+  const total = dashboard?.totalShipments ?? 0;
+  const inTransit = dashboard?.byStatus.IN_TRANSIT ?? 0;
+  const delivered = dashboard?.byStatus.DELIVERED ?? 0;
+  const delayed = dashboard?.byStatus.DELAYED ?? 0;
+  const delayedOrException = delayed + (dashboard?.byStatus.EXCEPTION ?? 0);
   const onTimeRate = total === 0 ? 0 : Math.round(((total - delayedOrException) / total) * 100);
 
   return (

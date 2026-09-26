@@ -5,21 +5,19 @@ import type { FormEvent } from "react";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
-import { useAppData } from "@/providers/AppDataProvider";
-import type { EditShipmentInput, Shipment } from "@/types";
+import { useUpdateShipment } from "@/hooks/useUpdateShipment";
+import type { EditShipmentInput, StaffShipment } from "@/types";
 
 function toDateTimeLocal(iso: string): string {
   return iso.slice(0, 16);
 }
 
 interface EditShipmentPanelProps {
-  shipment: Shipment;
+  shipment: StaffShipment;
 }
 
-type SaveState = "idle" | "saving" | "success" | "error";
-
 export function EditShipmentPanel({ shipment }: EditShipmentPanelProps) {
-  const { updateShipment } = useAppData();
+  const updateShipment = useUpdateShipment(shipment.trackingNumber);
   const [fields, setFields] = useState<EditShipmentInput>({
     originCity: shipment.originCity,
     originRegion: shipment.originRegion,
@@ -32,30 +30,29 @@ export function EditShipmentPanel({ shipment }: EditShipmentPanelProps) {
     referenceCode: shipment.referenceCode,
     weightKg: shipment.weightKg,
   });
-  const [error, setError] = useState<string | null>(null);
-  const [state, setState] = useState<SaveState>("idle");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const update = <K extends keyof EditShipmentInput>(key: K, value: EditShipmentInput[K]) => {
     setFields((prev) => ({ ...prev, [key]: value }));
-    if (error) setError(null);
-    if (state === "success") setState("idle");
+    if (validationError) setValidationError(null);
+    updateShipment.reset();
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!fields.originCity.trim() || !fields.destinationCity.trim() || !fields.currentLocation.trim() || !fields.estimatedDeliveryAt) {
-      setError("Origin, destination, current location and ETA are required.");
+      setValidationError("Origin, destination, current location and ETA are required.");
       return;
     }
 
-    setState("saving");
-    await updateShipment(shipment.trackingNumber, {
+    updateShipment.mutate({
       ...fields,
       estimatedDeliveryAt: new Date(fields.estimatedDeliveryAt).toISOString(),
     });
-    setState("success");
   };
+
+  const error = validationError ?? (updateShipment.isError ? "Something went wrong saving these changes." : null);
 
   return (
     <CollapsiblePanel icon={Pencil} title="Edit shipment" subtitle="Update route, ETA and shipment details" tone="cta">
@@ -109,13 +106,13 @@ export function EditShipmentPanel({ shipment }: EditShipmentPanelProps) {
               {error}
             </p>
           )}
-          {state === "success" && <p className="text-sm text-success">Shipment updated.</p>}
+          {updateShipment.isSuccess && <p className="text-sm text-success">Shipment updated.</p>}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" variant="cta" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" loading={updateShipment.isPending} disabled={updateShipment.isPending}>
               Save changes
             </Button>
           </div>

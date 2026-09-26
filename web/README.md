@@ -34,14 +34,15 @@ src/
 │   ├── customer/                     # Tracking search, result, enquiry form
 │   ├── shipments/                    # Status stepper + timeline (shared by both experiences)
 │   ├── staff/                        # Sidebar, CRUD panels, delivery-performance chart
-│   └── ui/                           # Button, Logo, StatusBadge, InfoField
-├── providers/                        # AppDataProvider (data/service layer), StaffAuthProvider
-├── lib/                              # Formatting, status-tone mapping, CSV export
-├── constant/                         # Seed data
-└── types/                            # Shared TypeScript models
+│   └── ui/                           # Button, Logo, StatusBadge, Pagination, InfoField
+├── providers/                        # QueryProvider (TanStack Query), StaffAuthProvider (session)
+├── api/                              # Axios client, per-resource API functions, query keys, transport types
+├── hooks/                            # One TanStack Query hook per operation — the only thing components call
+├── lib/                              # Formatting, status-tone mapping, CSV export, tracking-number format check
+└── types/                            # Shared TypeScript domain models
 ```
 
-The Customer and Staff route trees only ever talk to the app through the **providers** layer — no component reaches into raw data directly. That boundary is what lets `AppDataProvider` be the single place that changes when it starts calling a real API instead of resolving in memory (see [§6](#6-api-integration)).
+No component calls `axios` or `fetch` directly, and none reach into raw data — every read and write goes through a **hook** in `hooks/`, which owns a TanStack Query query/mutation and calls into `api/` for the actual HTTP request. That boundary is what let the whole app move from in-memory mock data to the real backend without any component's *interface* changing — see [§6](#6-api-integration) for the full map.
 
 ## 3. Customer Experience
 
@@ -89,25 +90,48 @@ The sidebar (Dashboard / Orders / Enquiries / Analytics) is fixed to the viewpor
 ## 6. API Integration
 
 ```
-User
+Component
  ↓
-Frontend UI  (customer + staff routes)
+Hook            (hooks/useXxx.ts)     — TanStack Query: loading/error/caching/refetch/invalidation
  ↓
-Service layer  (AppDataProvider / StaffAuthProvider)
+API function    (api/shipments.ts, ...) — Axios call, normalizes failures into ApiError
  ↓
-Backend
+apiClient       (api/client.ts)       — axios instance, withCredentials: true, baseURL "/api"
+ ↓  same-origin HTTP
+Next.js rewrite (next.config.ts)      — proxies /api/:path* to the Express API
+ ↓
+Backend         (server/)
 ```
 
-The frontend never talks to data directly — every read and write (`lookupShipment`, `createShipment`, `updateShipment`, `addTrackingEvent`, `addInternalNote`, `submitEnquiry`, `setEnquiryStatus`, `login`) goes through this service layer, shaped exactly like the calls a real API would expose. That contract — every route, payload and validation rule — is written out in full in [`../requirement/backend-integration-notes.md`](../requirement/backend-integration-notes.md), which is intentionally kept as a separate document so this README stays a frontend README.
+The frontend runs entirely on the real backend — there is no runtime mock data left. Every screen's read/write goes through a TanStack Query hook (customer: `useTrackingLookup`, `useSubmitEnquiry`; staff: `useSession`/`useLogin`/`useLogout`, `useStaffShipments`, `useStaffShipmentDetail`, `useCreateShipment`, `useUpdateShipment`, `useChangeShipmentStatus`, `useAddTrackingEvent`, `useAddInternalNote`, `useStaffEnquiries`, `useUpdateEnquiryStatus`, `useDashboard`, `useDeliveryPerformance`), which owns that operation's caching, invalidation and error normalization.
+
+The staff session is an httpOnly cookie set by the backend (`ns_session`) — the frontend never stores a token itself, just sends the cookie automatically via `withCredentials: true`.
+
+**Environment variables (`web/.env.local`, all optional locally):**
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `API_ORIGIN` | `http://127.0.0.1:4000` | Server-side only — where the Next.js rewrite (`next.config.ts`) proxies `/api/:path*` to. Set this in production to the deployed API's internal address. |
+| `NEXT_PUBLIC_API_BASE_URL` | `/api` | Overrides the Axios client's base URL directly, bypassing the rewrite. Only needed if the API is ever called from a different origin than the one serving the frontend. |
+
+Running the app against real data locally needs both workspaces up — see the root [`README.md`](../README.md) Quick start (`npm run dev` runs web on `:3000` and the API on `:4000` together via the rewrite).
+
+The full operation ↔ endpoint ↔ hook ↔ consumer map — including cache-invalidation behaviour and the couple of deliberate scope decisions (e.g. the delivery-performance chart fetching one default window) — is written out in [`../requirement/api-integration.md`](../requirement/api-integration.md), kept as a separate document so this README stays a frontend README. The backend's own route/payload/validation contract is documented in [`server/README.md`](../server/README.md).
 
 ## 7. Testing
 
-Automated tests use **Vitest** + **React Testing Library**, covering the three areas the task calls out:
+Automated tests use **Vitest** + **React Testing Library**. The API layer itself is never hit over the network in tests — every test mocks at the `api/*.ts` function boundary (`vi.mock("@/api", ...)`), so hooks and components are exercised against the real TanStack Query lifecycle (loading → success/error, cache writes, invalidation) without needing a running backend or a network-mocking library.
 
 | Test | Covers |
 |---|---|
-| `providers/__tests__/AppDataProvider.test.tsx` | Shipment lookup, and rejecting a duplicate tracking number on creation — the app's core data-layer behaviour |
-| `providers/__tests__/StaffAuthProvider.test.tsx` | Login rejects incorrect credentials; accepts the seeded demo account; logout clears the session |
+| `hooks/__tests__/useGetTrackingDetail.test.ts` | Disabled until a tracking number is given; success; a 404 surfaces as `ApiError.isNotFound` |
+| `hooks/__tests__/useTrackingLookup.test.ts` | Full idle → loading → found/not-found/error state machine, and `reset()` |
+| `hooks/__tests__/useSubmitEnquiry.test.ts` | Mutation success and backend-rejection states |
+| `hooks/__tests__/useStaffShipments.test.ts` | Paginated list query, and re-querying when params (e.g. page) change |
+| `hooks/__tests__/useChangeShipmentStatus.test.ts` | Mutation writes its response straight into the shipment-detail cache |
+| `components/customer/__tests__/EnquiryPanel.test.tsx` | Validation error, success message, and a backend-failure message — full component + mutation integration |
+| `components/staff/__tests__/UpdateStatusPanel.test.tsx` | Rejects a no-op status change client-side; submits and shows success; shows an inline error on backend failure |
+| `providers/__tests__/StaffAuthProvider.test.tsx` | Login rejects incorrect credentials; distinguishes an expired session from a missing one (`SESSION_EXPIRED` vs `UNAUTHENTICATED`); logout clears the session |
 | `components/customer/__tests__/TrackingSearch.test.tsx` | Empty/invalid submissions are blocked with an inline error; a valid tracking number calls through; the loading state disables the control |
 
 ```bash
@@ -119,18 +143,21 @@ npm run test:watch  # watch mode while developing
 
 | Decision | Reason |
 |---|---|
-| Architecture | Routes never touch data directly — everything goes through `AppDataProvider`/`StaffAuthProvider`, so the backend can be swapped in without rewriting UI |
+| Architecture | Components never call Axios/fetch directly — every operation is a TanStack Query hook in `hooks/`, backed by a typed function in `api/`, so the data layer, cache and error handling live in one predictable place per operation |
+| Auth | The real staff session is an httpOnly cookie the backend controls; `StaffAuthProvider` wraps it behind the exact interface the old mock exposed, so nothing downstream (`RouteGuard`, `StaffSidebar`, the login page) needed to change |
 | UI approach | Two distinct visual registers (calm/customer vs. dense/operations) sharing one design-token system, so they stay consistent without looking identical |
 | Status system | Every shipment status has its own colour *and* icon *and* label — never colour alone |
 | Responsive strategy | Desktop tables become mobile cards; the staff sidebar collapses into a top bar + menu below `lg` |
-| Testing | Vitest + Testing Library, targeted at the data layer, auth, and one full component interaction rather than broad shallow coverage |
+| Testing | Mocks at the `api/` boundary rather than the network layer, so hooks are tested against the real TanStack Query lifecycle (loading/error/cache/invalidation) without a running backend |
 
-## 9. Top 5 Packages
+## 9. Key Packages
 
 | Package | Purpose |
 |---|---|
 | Next.js | App Router, routing, build/deploy, image and font optimisation |
 | React | UI runtime |
+| TanStack Query | The full API lifecycle — loading, error, caching, refetching, invalidation, mutations |
+| Axios | HTTP client for every call to the backend |
 | Tailwind CSS v4 | Utility-first styling and the design-token system |
 | Motion | Page/element transitions, the calendar popover, the expand-chart modal |
 | Lucide React | Icon set used throughout both experiences |
@@ -141,9 +168,8 @@ npm run test:watch  # watch mode while developing
 |---|---|
 | Status change *is* a tracking event, not a separate concept | Keeps the badge and the timeline provably impossible to disagree, at the cost of a slightly less "obvious" data model |
 | One shared `Button`/`CollapsiblePanel` with a tone override, instead of separate staff/customer components | Avoids duplicating every interactive primitive, at the cost of a small tone prop threaded through |
-| Client-side session (`sessionStorage` + TTL) rather than a server session | Lets the staff flow be fully demoable without a backend yet; documented explicitly as the one thing that must move server-side next |
-| A handful of targeted tests over broad coverage | Matches the brief's "identify risky paths and test them intentionally" rather than chasing a coverage number |
-| Delivery-performance chart uses illustrative time-series data | The seed dataset is deliberately small (a handful of demo shipments); a real trend needs real history, not five records |
+| Delivery-performance chart fetches one default window and doesn't refetch on calendar month navigation | The calendar only lets you pick among dates the backend's default window actually returned; a real "any month" picker would need the query params to follow the calendar, which wasn't required to move the chart off mock data |
+| Dashboard/shipments lists are server-paginated instead of holding every shipment in memory | The backend caps list responses at 100 rows; a "load everything client-side" model stops working the moment the seed dataset grows past a demo size |
 
 ## 11. Additional Features
 

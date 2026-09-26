@@ -1,7 +1,7 @@
 import { CORE_STEPS, NODE_TONE_CLASSES, STATUS_ICON, STATUS_TONE, getCoreStepIndex } from "@/lib/shipmentStatus";
-import type { Shipment } from "@/types";
+import type { ShipmentProgress } from "@/types";
 
-export function StatusStepper({ shipment }: { shipment: Pick<Shipment, "status" | "events"> }) {
+export function StatusStepper({ shipment }: { shipment: ShipmentProgress }) {
   const currentIndex = getCoreStepIndex(shipment);
   const tone = STATUS_TONE[shipment.status];
   const CurrentIcon = STATUS_ICON[shipment.status];

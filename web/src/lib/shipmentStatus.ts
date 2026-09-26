@@ -9,7 +9,7 @@ import {
   Truck,
   type LucideIcon,
 } from "lucide-react";
-import type { Shipment, ShipmentStatus, TrackingEvent } from "@/types";
+import type { ShipmentProgress, ShipmentStatus, TrackingEvent } from "@/types";
 
 export const STATUS_LABEL: Record<ShipmentStatus, string> = {
   CREATED: "Created",
@@ -77,7 +77,7 @@ export const CORE_STEPS: { status: ShipmentStatus; label: string }[] = [
   { status: "DELIVERED", label: "Delivered" },
 ];
 
-export function getCoreStepIndex(shipment: Pick<Shipment, "status" | "events">): number {
+export function getCoreStepIndex(shipment: ShipmentProgress): number {
   if (shipment.status === "DELIVERED") return CORE_STEPS.length - 1;
 
   for (let i = shipment.events.length - 1; i >= 0; i -= 1) {

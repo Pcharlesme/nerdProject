@@ -7,27 +7,24 @@ import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { STATUS_AUTO_MESSAGE, STATUS_OPTIONS } from "@/lib/shipmentStatus";
-import { useAppData } from "@/providers/AppDataProvider";
-import type { Shipment, ShipmentStatus } from "@/types";
+import { useChangeShipmentStatus } from "@/hooks/useChangeShipmentStatus";
+import type { StaffShipment, ShipmentStatus } from "@/types";
 
-type SaveState = "idle" | "saving" | "success" | "error";
-
-export function UpdateStatusPanel({ shipment }: { shipment: Shipment }) {
-  const { changeStatus } = useAppData();
+export function UpdateStatusPanel({ shipment }: { shipment: StaffShipment }) {
+  const changeStatus = useChangeShipmentStatus(shipment.trackingNumber);
   const [nextStatus, setNextStatus] = useState<ShipmentStatus>(shipment.status);
-  const [state, setState] = useState<SaveState>("idle");
+  const [sameStatusError, setSameStatusError] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (nextStatus === shipment.status) {
-      setState("error");
+      setSameStatusError(true);
       return;
     }
 
-    setState("saving");
-    await changeStatus(shipment.trackingNumber, nextStatus);
-    setState("success");
+    setSameStatusError(false);
+    changeStatus.mutate({ status: nextStatus });
   };
 
   return (
@@ -37,7 +34,10 @@ export function UpdateStatusPanel({ shipment }: { shipment: Shipment }) {
           onSubmit={handleSubmit}
           noValidate
           className="space-y-4"
-          onChange={() => state !== "idle" && setState("idle")}
+          onChange={() => {
+            setSameStatusError(false);
+            changeStatus.reset();
+          }}
         >
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="text-muted">Current status</span>
@@ -67,18 +67,23 @@ export function UpdateStatusPanel({ shipment }: { shipment: Shipment }) {
             )}
           </div>
 
-          {state === "error" && (
+          {sameStatusError && (
             <p role="alert" className="text-sm text-danger">
               Choose a different status to update.
             </p>
           )}
-          {state === "success" && <p className="text-sm text-success">Status updated.</p>}
+          {changeStatus.isError && (
+            <p role="alert" className="text-sm text-danger">
+              Something went wrong updating the status. Please try again.
+            </p>
+          )}
+          {changeStatus.isSuccess && <p className="text-sm text-success">Status updated.</p>}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" variant="cta" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" loading={changeStatus.isPending} disabled={changeStatus.isPending}>
               Update status
             </Button>
           </div>

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Boxes, CalendarClock, Hash, MapPin, PackageX, Truck } from "lucide-react";
-import { useAppData } from "@/providers/AppDataProvider";
+import { AlertCircle, ArrowLeft, Boxes, CalendarClock, Hash, MapPin, PackageX, Truck } from "lucide-react";
+import { ApiError } from "@/api";
+import { useStaffShipmentDetail } from "@/hooks/useStaffShipmentDetail";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { InfoField, SectionLabel } from "@/components/ui/InfoField";
 import { StatusStepper } from "@/components/shipments/StatusStepper";
@@ -18,8 +19,8 @@ import { formatDateTime } from "@/lib/formatDate";
 
 export default function StaffShipmentDetailsPage() {
   const params = useParams<{ trackingNumber: string }>();
-  const { shipments } = useAppData();
-  const shipment = shipments.find((s) => s.trackingNumber === params.trackingNumber);
+  const { data: shipment, isLoading, isError, error } = useStaffShipmentDetail(params.trackingNumber);
+  const notFound = isError && error instanceof ApiError && error.isNotFound;
 
   return (
     <main className="min-h-screen bg-background">
@@ -32,7 +33,15 @@ export default function StaffShipmentDetailsPage() {
           Back to shipments
         </Link>
 
-        {!shipment ? (
+        {isLoading ? (
+          <DetailSkeleton />
+        ) : isError && !notFound ? (
+          <div className="mt-10 flex flex-col items-center rounded-xl border border-border bg-surface p-10 text-center">
+            <AlertCircle className="size-8 text-danger" aria-hidden="true" />
+            <h1 className="mt-3 text-xl font-semibold text-text">Couldn&apos;t load this shipment</h1>
+            <p className="mt-2 text-sm text-muted">Please try again in a moment.</p>
+          </div>
+        ) : notFound || !shipment ? (
           <div className="mt-10 flex flex-col items-center rounded-xl border border-border bg-surface p-10 text-center">
             <PackageX className="size-8 text-muted" aria-hidden="true" />
             <h1 className="mt-3 text-xl font-semibold text-text">Shipment not found</h1>
@@ -125,5 +134,20 @@ export default function StaffShipmentDetailsPage() {
         )}
       </section>
     </main>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <div role="status" className="mt-6 space-y-6">
+      <span className="sr-only">Loading shipment…</span>
+      <div className="h-8 w-64 animate-pulse rounded bg-background" aria-hidden="true" />
+      <div className="h-48 animate-pulse rounded-xl bg-background" aria-hidden="true" />
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="h-40 animate-pulse rounded-xl bg-background" aria-hidden="true" />
+        <div className="h-40 animate-pulse rounded-xl bg-background" aria-hidden="true" />
+      </div>
+      <div className="h-56 animate-pulse rounded-xl bg-background" aria-hidden="true" />
+    </div>
   );
 }

@@ -7,12 +7,11 @@ import Link from "next/link";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { SectionLabel } from "@/components/ui/InfoField";
-import { useAppData } from "@/providers/AppDataProvider";
-import { generateTrackingNumber } from "@/constant/mockData";
+import { useCreateShipment } from "@/hooks/useCreateShipment";
+import { ApiError } from "@/api";
 import type { CreateShipmentInput } from "@/types";
 
 const REQUIRED_LABELS: Record<string, string> = {
-  trackingNumber: "Tracking number",
   originCity: "Origin city",
   destinationCity: "Destination city",
   currentLocation: "Current location",
@@ -45,7 +44,7 @@ interface FormState {
 }
 
 const INITIAL_STATE: FormState = {
-  trackingNumber: generateTrackingNumber(),
+  trackingNumber: "",
   originCity: "",
   originRegion: "",
   destinationCity: "",
@@ -66,25 +65,20 @@ const INITIAL_STATE: FormState = {
   receiverAddress: "",
 };
 
-type SaveState = "idle" | "saving" | "error";
-
 export default function CreateShipmentPage() {
   const router = useRouter();
-  const { createShipment } = useAppData();
+  const createShipment = useCreateShipment();
   const [form, setForm] = useState<FormState>(INITIAL_STATE);
   const [missing, setMissing] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [state, setState] = useState<SaveState>("idle");
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const requiredKeys: (keyof typeof REQUIRED_LABELS)[] = [
-      "trackingNumber",
       "originCity",
       "destinationCity",
       "currentLocation",
@@ -93,13 +87,14 @@ export default function CreateShipmentPage() {
       "senderName",
       "receiverName",
     ];
-    const missingFields = requiredKeys.filter((key) => !form[key as keyof FormState].trim());
+    const missingFields = requiredKeys.filter(
+      (key) => !form[key as keyof FormState].trim(),
+    );
     setMissing(missingFields);
-    setError(null);
     if (missingFields.length > 0) return;
 
     const input: CreateShipmentInput = {
-      trackingNumber: form.trackingNumber.trim(),
+      trackingNumber: form.trackingNumber.trim() || undefined,
       originCity: form.originCity.trim(),
       originRegion: form.originRegion.trim(),
       destinationCity: form.destinationCity.trim(),
@@ -124,17 +119,19 @@ export default function CreateShipmentPage() {
       },
     };
 
-    setState("saving");
-    const result = await createShipment(input);
-
-    if (!result.success || !result.shipment) {
-      setState("error");
-      setError(result.error ?? "Something went wrong creating this shipment.");
-      return;
-    }
-
-    router.push(`/staff/shipments/${result.shipment.trackingNumber}`);
+    createShipment.mutate(input, {
+      onSuccess: (shipment) => {
+        router.push(`/staff/shipments/${shipment.trackingNumber}`);
+      },
+    });
   };
+
+  const error =
+    createShipment.error instanceof ApiError
+      ? createShipment.error.message
+      : createShipment.isError
+        ? "Something went wrong creating this shipment."
+        : null;
 
   return (
     <main className="min-h-screen bg-background">
@@ -149,8 +146,12 @@ export default function CreateShipmentPage() {
 
         <div className="mt-6">
           <p className="text-sm font-medium text-primary">Operations</p>
-          <h1 className="mt-1 text-2xl font-semibold text-text">Create shipment</h1>
-          <p className="mt-1 text-sm text-muted">Fields marked with * are required.</p>
+          <h1 className="mt-1 text-2xl font-semibold text-text">
+            Create shipment
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Fields marked with * are required.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-8">
@@ -159,10 +160,10 @@ export default function CreateShipmentPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <Field
                 label="Tracking number"
-                required
                 value={form.trackingNumber}
+                disable={true}
                 onChange={(v) => set("trackingNumber", v)}
-                missing={missing.includes("trackingNumber")}
+                placeholder="Leave blank to auto-generate"
               />
               <Field
                 label="Reference"
@@ -179,7 +180,11 @@ export default function CreateShipmentPage() {
                 onChange={(v) => set("originCity", v)}
                 missing={missing.includes("originCity")}
               />
-              <Field label="Origin region" value={form.originRegion} onChange={(v) => set("originRegion", v)} />
+              <Field
+                label="Origin region"
+                value={form.originRegion}
+                onChange={(v) => set("originRegion", v)}
+              />
               <Field
                 label="Destination city"
                 required
@@ -207,14 +212,23 @@ export default function CreateShipmentPage() {
                 onChange={(v) => set("estimatedDeliveryAt", v)}
                 missing={missing.includes("estimatedDeliveryAt")}
               />
-              <Field label="Service level" value={form.serviceLevel} onChange={(v) => set("serviceLevel", v)} />
+              <Field
+                label="Service level"
+                value={form.serviceLevel}
+                onChange={(v) => set("serviceLevel", v)}
+              />
               <Field
                 label="Package count"
                 type="number"
                 value={form.packageCount}
                 onChange={(v) => set("packageCount", v)}
               />
-              <Field label="Weight (kg)" type="number" value={form.weightKg} onChange={(v) => set("weightKg", v)} />
+              <Field
+                label="Weight (kg)"
+                type="number"
+                value={form.weightKg}
+                onChange={(v) => set("weightKg", v)}
+              />
             </div>
           </section>
 
@@ -228,9 +242,22 @@ export default function CreateShipmentPage() {
                 onChange={(v) => set("senderName", v)}
                 missing={missing.includes("senderName")}
               />
-              <Field label="Email" type="email" value={form.senderEmail} onChange={(v) => set("senderEmail", v)} />
-              <Field label="Phone" value={form.senderPhone} onChange={(v) => set("senderPhone", v)} />
-              <Field label="Address" value={form.senderAddress} onChange={(v) => set("senderAddress", v)} />
+              <Field
+                label="Email"
+                type="email"
+                value={form.senderEmail}
+                onChange={(v) => set("senderEmail", v)}
+              />
+              <Field
+                label="Phone"
+                value={form.senderPhone}
+                onChange={(v) => set("senderPhone", v)}
+              />
+              <Field
+                label="Address"
+                value={form.senderAddress}
+                onChange={(v) => set("senderAddress", v)}
+              />
             </div>
           </section>
 
@@ -250,8 +277,16 @@ export default function CreateShipmentPage() {
                 value={form.receiverEmail}
                 onChange={(v) => set("receiverEmail", v)}
               />
-              <Field label="Phone" value={form.receiverPhone} onChange={(v) => set("receiverPhone", v)} />
-              <Field label="Address" value={form.receiverAddress} onChange={(v) => set("receiverAddress", v)} />
+              <Field
+                label="Phone"
+                value={form.receiverPhone}
+                onChange={(v) => set("receiverPhone", v)}
+              />
+              <Field
+                label="Address"
+                value={form.receiverAddress}
+                onChange={(v) => set("receiverAddress", v)}
+              />
             </div>
           </section>
 
@@ -261,9 +296,15 @@ export default function CreateShipmentPage() {
             </p>
           )}
 
-          {state === "error" && error && (
-            <div role="alert" className="flex items-start gap-2 rounded-lg border border-danger-border bg-danger-bg px-4 py-3 text-sm text-danger">
-              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          {error && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-danger-border bg-danger-bg px-4 py-3 text-sm text-danger"
+            >
+              <AlertCircle
+                className="mt-0.5 size-4 shrink-0"
+                aria-hidden="true"
+              />
               {error}
             </div>
           )}
@@ -275,7 +316,13 @@ export default function CreateShipmentPage() {
             >
               Cancel
             </Link>
-            <Button type="submit" variant="cta" size="lg" loading={state === "saving"} disabled={state === "saving"}>
+            <Button
+              type="submit"
+              variant="cta"
+              size="lg"
+              loading={createShipment.isPending}
+              disabled={createShipment.isPending}
+            >
               Create shipment
             </Button>
           </div>
@@ -292,12 +339,14 @@ function Field({
   type = "text",
   required = false,
   missing = false,
+  disable = false,
   placeholder,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
+  disable?: boolean;
   required?: boolean;
   missing?: boolean;
   placeholder?: string;
@@ -311,6 +360,7 @@ function Field({
       <input
         type={type}
         value={value}
+        disabled={disable}
         placeholder={placeholder}
         aria-invalid={missing ? true : undefined}
         onChange={(event) => onChange(event.target.value)}

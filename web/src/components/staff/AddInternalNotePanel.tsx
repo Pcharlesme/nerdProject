@@ -5,30 +5,25 @@ import type { FormEvent } from "react";
 import { StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
-import { useAppData } from "@/providers/AppDataProvider";
-import { useStaffAuth } from "@/providers/StaffAuthProvider";
-import type { Shipment } from "@/types";
+import { useAddInternalNote } from "@/hooks/useAddInternalNote";
+import type { StaffShipment } from "@/types";
 
-type SaveState = "idle" | "saving" | "success" | "error";
-
-export function AddInternalNotePanel({ shipment }: { shipment: Shipment }) {
-  const { addInternalNote } = useAppData();
-  const { email } = useStaffAuth();
+export function AddInternalNotePanel({ shipment }: { shipment: StaffShipment }) {
+  const addInternalNote = useAddInternalNote(shipment.trackingNumber);
   const [message, setMessage] = useState("");
-  const [state, setState] = useState<SaveState>("idle");
+  const [validationError, setValidationError] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!message.trim()) {
-      setState("error");
+      setValidationError(true);
       return;
     }
 
-    setState("saving");
-    await addInternalNote(shipment.trackingNumber, message.trim(), email ?? "Staff");
-    setState("success");
-    setMessage("");
+    setValidationError(false);
+    // The author is derived from the session cookie server-side — never sent in the body.
+    addInternalNote.mutate({ message: message.trim() }, { onSuccess: () => setMessage("") });
   };
 
   return (
@@ -49,7 +44,8 @@ export function AddInternalNotePanel({ shipment }: { shipment: Shipment }) {
               value={message}
               onChange={(event) => {
                 setMessage(event.target.value);
-                if (state === "error") setState("idle");
+                if (validationError) setValidationError(false);
+                addInternalNote.reset();
               }}
               rows={3}
               placeholder="Add context for other staff members..."
@@ -57,18 +53,23 @@ export function AddInternalNotePanel({ shipment }: { shipment: Shipment }) {
             />
           </div>
 
-          {state === "error" && (
+          {validationError && (
             <p role="alert" className="text-sm text-danger">
               Enter a note before saving.
             </p>
           )}
-          {state === "success" && <p className="text-sm text-success">Note added.</p>}
+          {addInternalNote.isError && (
+            <p role="alert" className="text-sm text-danger">
+              Something went wrong saving this note. Please try again.
+            </p>
+          )}
+          {addInternalNote.isSuccess && <p className="text-sm text-success">Note added.</p>}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" variant="cta" loading={state === "saving"} disabled={state === "saving"}>
+            <Button type="submit" variant="cta" loading={addInternalNote.isPending} disabled={addInternalNote.isPending}>
               Add note
             </Button>
           </div>

@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import { Mail, MessageCircleQuestion, Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
-import { useAppData } from "@/providers/AppDataProvider";
+import { useSubmitEnquiry } from "@/hooks/useSubmitEnquiry";
 import { ENQUIRY_CATEGORIES } from "@/types";
 import type { EnquiryCategory } from "@/types";
 
@@ -14,35 +14,48 @@ interface EnquiryPanelProps {
   trackingNumber?: string | null;
 }
 
-type SubmitState = "idle" | "submitting" | "success" | "error";
-
 export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
-  const { submitEnquiry } = useAppData();
+  const submitEnquiry = useSubmitEnquiry();
   const [trackingInput, setTrackingInput] = useState(trackingNumber ?? "");
   const [category, setCategory] = useState<EnquiryCategory>(ENQUIRY_CATEGORIES[0].value);
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [state, setState] = useState<SubmitState>("idle");
+  const [validationError, setValidationError] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!trackingInput.trim() || !message.trim()) {
-      setState("error");
+      setValidationError(true);
       return;
     }
+    setValidationError(false);
 
-    setState("submitting");
-    await submitEnquiry({
-      trackingNumber: trackingInput.trim(),
-      category,
-      message: message.trim(),
-      contactEmail: email.trim() || undefined,
-    });
-    setState("success");
-    setMessage("");
-    setEmail("");
+    submitEnquiry.mutate(
+      {
+        trackingNumber: trackingInput.trim(),
+        category,
+        message: message.trim(),
+        contactEmail: email.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setMessage("");
+          setEmail("");
+        },
+      },
+    );
   };
+
+  const state = validationError
+    ? "error"
+    : submitEnquiry.isPending
+      ? "submitting"
+      : submitEnquiry.isSuccess
+        ? "success"
+        : submitEnquiry.isError
+          ? "submit-error"
+          : "idle";
 
   return (
     <div className="w-full max-w-2xl">
@@ -134,6 +147,11 @@ export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
               {state === "error" && (
                 <p role="alert" className="text-sm text-danger">
                   Enter your tracking number and a message before sending.
+                </p>
+              )}
+              {state === "submit-error" && (
+                <p role="alert" className="text-sm text-danger">
+                  We couldn&apos;t send your enquiry. Please try again.
                 </p>
               )}
 

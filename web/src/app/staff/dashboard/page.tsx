@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, Check, Copy, Download, Package, Plus, Search } from "lucide-react";
-import { useAppData } from "@/providers/AppDataProvider";
+import { AlertCircle, ArrowUpDown, Check, Copy, Download, Package, Plus, Search } from "lucide-react";
+import { useDashboard } from "@/hooks/useDashboard";
+import { useStaffShipments } from "@/hooks/useStaffShipments";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Pagination } from "@/components/ui/Pagination";
 import { DeliveryPerformancePanel } from "@/components/staff/DeliveryPerformancePanel";
 import { STATUS_LABEL } from "@/lib/shipmentStatus";
 import { formatDateShort, formatDateTime } from "@/lib/formatDate";
 import { downloadCsv } from "@/lib/exportCsv";
-import type { Shipment, ShipmentStatus } from "@/types";
+import type { ShipmentSummary, ShipmentStatus } from "@/types";
 
 type OrderFilter = "ALL" | ShipmentStatus;
 
@@ -24,41 +26,46 @@ const FILTERS: { key: OrderFilter; label: string }[] = [
   { key: "EXCEPTION", label: "Exception" },
 ];
 
+const PAGE_SIZE = 10;
+
 export default function StaffDashboardPage() {
-  const { shipments } = useAppData();
   const router = useRouter();
+  const { data: dashboard } = useDashboard();
 
   const [searchValue, setSearchValue] = useState("");
-  const [searchError, setSearchError] = useState<string | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<OrderFilter>("ALL");
   const [copiedTrackingNumber, setCopiedTrackingNumber] = useState<string | null>(null);
   const [sortNewestFirst, setSortNewestFirst] = useState(true);
+  const [page, setPage] = useState(1);
 
-  const filteredShipments = [...shipments]
-    .filter((s) => activeFilter === "ALL" || s.status === activeFilter)
-    .sort((a, b) => {
-      const delta = new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-      return sortNewestFirst ? delta : -delta;
-    });
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedSearch(searchValue), 300);
+    return () => clearTimeout(timeout);
+  }, [searchValue]);
+
+  const shipmentsQuery = useStaffShipments({
+    search: debouncedSearch.trim() || undefined,
+    status: activeFilter === "ALL" ? undefined : activeFilter,
+    order: sortNewestFirst ? "desc" : "asc",
+    page,
+    limit: PAGE_SIZE,
+  });
+
+  const shipments = shipmentsQuery.data?.shipments ?? [];
+  const meta = shipmentsQuery.data?.meta;
 
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const value = searchValue.trim();
     if (!value) return;
-
-    const match = shipments.find((s) => s.trackingNumber.toUpperCase() === value.toUpperCase());
-    if (match) {
-      setSearchError(null);
-      router.push(`/staff/shipments/${match.trackingNumber}`);
-    } else {
-      setSearchError(`No shipment found for "${value}".`);
-    }
+    router.push(`/staff/shipments/${value.toUpperCase()}`);
   };
 
   const handleExport = () => {
     downloadCsv(
       `shipments-${new Date().toISOString().slice(0, 10)}.csv`,
-      filteredShipments,
+      shipments,
       [
         { header: "Tracking number", value: (s) => s.trackingNumber },
         { header: "Status", value: (s) => STATUS_LABEL[s.status] },
@@ -96,7 +103,7 @@ export default function StaffDashboardPage() {
               value={searchValue}
               onChange={(event) => {
                 setSearchValue(event.target.value);
-                if (searchError) setSearchError(null);
+                setPage(1);
               }}
               placeholder="Search order..."
               className="h-11 w-full rounded-full border border-border bg-background pl-10 pr-4 text-sm text-text outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -122,12 +129,6 @@ export default function StaffDashboardPage() {
             </Link>
           </div>
         </div>
-
-        {searchError && (
-          <p role="alert" className="mt-2 text-sm text-danger">
-            {searchError}
-          </p>
-        )}
       </div>
 
       <div className="px-5 py-6 lg:px-8">
@@ -138,20 +139,23 @@ export default function StaffDashboardPage() {
             <div className="flex items-center gap-2">
               <h2 className="font-semibold text-text">Orders</h2>
               <span className="rounded-full bg-background px-2.5 py-1 text-xs font-semibold text-muted">
-                {shipments.length}
+                {dashboard?.totalShipments ?? 0}
               </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {FILTERS.map((filter) => {
                 const count =
-                  filter.key === "ALL" ? shipments.length : shipments.filter((s) => s.status === filter.key).length;
+                  filter.key === "ALL" ? dashboard?.totalShipments ?? 0 : dashboard?.byStatus[filter.key] ?? 0;
                 const active = activeFilter === filter.key;
                 return (
                   <button
                     key={filter.key}
                     type="button"
-                    onClick={() => setActiveFilter(filter.key)}
+                    onClick={() => {
+                      setActiveFilter(filter.key);
+                      setPage(1);
+                    }}
                     className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
                       active
                         ? "border-cta bg-cta text-white"
@@ -171,7 +175,10 @@ export default function StaffDashboardPage() {
               })}
               <button
                 type="button"
-                onClick={() => setSortNewestFirst((value) => !value)}
+                onClick={() => {
+                  setSortNewestFirst((value) => !value);
+                  setPage(1);
+                }}
                 aria-label={sortNewestFirst ? "Sorted newest first — click for oldest first" : "Sorted oldest first — click for newest first"}
                 title={sortNewestFirst ? "Newest first" : "Oldest first"}
                 className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border transition-colors ${
@@ -183,7 +190,14 @@ export default function StaffDashboardPage() {
             </div>
           </div>
 
-          {filteredShipments.length === 0 ? (
+          {shipmentsQuery.isError ? (
+            <div className="flex items-start gap-2 px-5 py-12 text-sm text-danger">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              Couldn&apos;t load orders. Please try again.
+            </div>
+          ) : shipmentsQuery.isLoading ? (
+            <TableSkeleton />
+          ) : shipments.length === 0 ? (
             <div className="px-5 py-12 text-center">
               <Package className="mx-auto size-8 text-muted" aria-hidden="true" />
               <p className="mt-3 font-medium text-text">No orders in this view</p>
@@ -206,7 +220,7 @@ export default function StaffDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredShipments.map((shipment) => (
+                    {shipments.map((shipment) => (
                       <OrderRow
                         key={shipment.trackingNumber}
                         shipment={shipment}
@@ -220,7 +234,7 @@ export default function StaffDashboardPage() {
 
               {/* Mobile */}
               <div className="divide-y divide-border lg:hidden">
-                {filteredShipments.map((shipment) => (
+                {shipments.map((shipment) => (
                   <OrderCard
                     key={shipment.trackingNumber}
                     shipment={shipment}
@@ -231,9 +245,22 @@ export default function StaffDashboardPage() {
               </div>
             </>
           )}
+
+          {meta && <Pagination page={meta.page} totalPages={meta.totalPages} onPageChange={setPage} />}
         </section>
       </div>
     </main>
+  );
+}
+
+function TableSkeleton() {
+  return (
+    <div role="status" className="space-y-4 p-5">
+      <span className="sr-only">Loading orders…</span>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="h-12 animate-pulse rounded-lg bg-background" aria-hidden="true" />
+      ))}
+    </div>
   );
 }
 
@@ -242,7 +269,7 @@ function OrderRow({
   copied,
   onCopy,
 }: {
-  shipment: Shipment;
+  shipment: ShipmentSummary;
   copied: boolean;
   onCopy: (trackingNumber: string) => void;
 }) {
@@ -290,7 +317,7 @@ function OrderCard({
   copied,
   onCopy,
 }: {
-  shipment: Shipment;
+  shipment: ShipmentSummary;
   copied: boolean;
   onCopy: (trackingNumber: string) => void;
 }) {
