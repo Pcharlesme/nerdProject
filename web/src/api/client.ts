@@ -6,7 +6,7 @@ import axios from "axios";
  * browser either way, in dev or production. Override via env only if the API
  * is ever reached directly (e.g. pointing a preview build at a different host).
  */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
+export const API_BASE_URL = "https://nerdlogic.onrender.com";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
