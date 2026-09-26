@@ -1,6 +1,6 @@
 # NerdLogistics — Shipment Tracking Dashboard
 
-A logistics web app with two experiences: a public page where anyone can track a shipment, and a protected staff dashboard for managing shipments, statuses, tracking history and customer enquiries. Built for a one-week take-home task — see [`requirement/Software Developer Task.pdf`](requirement/Software%20Developer%20Task.pdf) for the original brief.
+A logistics web app with two experiences: a public page where anyone can track a shipment, and a protected staff dashboard for managing shipments, statuses, tracking history and customer enquiries.
 
 ```
 Customer → Track shipment → Understand status → View journey → Submit enquiry
@@ -33,7 +33,7 @@ The customer tracking page requires no login. The staff area is behind the demo 
 | `TRK-DEMO-006` | Out for delivery | Solcaster → Brackenford | Mid-journey status, four events |
 | `TRK-DEMO-007` | Created | Lindmere → Vesterholm | Brand-new record — timeline's empty state |
 
-The seed also generates ~48 additional randomised historical shipments (`TRK-HIST-*`) so the staff list, search, filters and pagination have enough volume to be meaningful, plus 5 seeded customer enquiries (2 open, 3 resolved) linked to real tracking numbers above. Every name, email, phone number and message in the seed data is fictional (emails use the reserved `.test`/`example.com` domains; phone numbers are placeholder patterns) — see the [mock-data rule](requirement/Software%20Developer%20Task.pdf).
+The seed also generates ~48 additional randomised historical shipments (`TRK-HIST-*`) so the staff list, search, filters and pagination have enough volume to be meaningful, plus 5 seeded customer enquiries (2 open, 3 resolved) linked to real tracking numbers above. Every name, email, phone number and message in the seed data is fictional (emails use the reserved `.test`/`example.com` domains; phone numbers are placeholder patterns) — see the [mock-data rule]
 
 ## What I built
 
@@ -140,7 +140,7 @@ What's covered (not exhaustive — see the test files themselves for the full li
 
 ## API overview
 
-REST, JSON, resource-oriented. Full endpoint-by-endpoint reference (request/response shapes, status codes, validation rules): [`server/README.md`](server/README.md). Frontend hook ↔ endpoint mapping: [`requirement/api-integration.md`](requirement/api-integration.md).
+REST, JSON, resource-oriented. Full endpoint-by-endpoint reference (request/response shapes, status codes, validation rules): [`server/README.md`](server/README.md). Frontend hook ↔ endpoint mapping
 
 ```
 Public         GET  /api/shipments/:trackingNumber        Track a shipment (no sender/receiver/notes)
@@ -183,7 +183,3 @@ Every `/api/staff/*` route requires the session cookie and is rejected server-si
 
 ## Submission
 
-- **Repository:** this repo.
-- **Live app URL:** https://nerdlogic.onrender.com
-- **Demo credentials:** `staff@shiptrack.com` / `demo1234`
-- **Walkthrough:** _add the recording link here before submitting_
