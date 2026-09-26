@@ -105,7 +105,7 @@ export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
                     htmlFor="enquiry-category"
                     className="mb-1.5 block text-sm font-medium text-text"
                   >
-                    What&apos;s this abdfout?
+                    What&apos;s this about?
                   </label>
                   <div className="relative">
                     <select
@@ -123,10 +123,8 @@ export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
                       ))}
                     </select>
 
-                   
-
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                    <ChevronDown size={12}/>
+                      <ChevronDown size={12} />
                     </span>
                   </div>
                 </div>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { STATUS_OPTIONS } from "@/lib/shipmentStatus";
 import { useAddTrackingEvent } from "@/hooks/useAddTrackingEvent";
+import { ApiError } from "@/api";
 import type { StaffShipment, ShipmentStatus } from "@/types";
 
 function nowForInput(): string {
@@ -43,7 +44,13 @@ export function AddTrackingEventPanel({ shipment }: { shipment: StaffShipment })
     );
   };
 
-  const error = validationError ?? (addTrackingEvent.isError ? "Something went wrong adding this event." : null);
+  const error =
+    validationError ??
+    (addTrackingEvent.error instanceof ApiError
+      ? addTrackingEvent.error.message
+      : addTrackingEvent.isError
+        ? "Something went wrong adding this event."
+        : null);
 
   return (
     <CollapsiblePanel

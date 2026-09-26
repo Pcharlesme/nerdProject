@@ -1,7 +1,9 @@
 # One Render web service running both processes side by side: Next.js on the
 # public $PORT Render assigns, and the Express API on a fixed loopback-only
-# port (see package.json's start:server and web/next.config.ts's rewrite).
-# Details: server/README.md §9.
+# port set via INTERNAL_API_PORT (deliberately a different name than $PORT, so
+# Express's real bind port can never be confused with the one Render assigns —
+# see package.json's start:server, server/src/config/env.ts, and
+# web/next.config.ts's rewrite). Details: server/README.md §9.
 services:
   - type: web
     name: nerdshipping

@@ -8,6 +8,7 @@ import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { STATUS_AUTO_MESSAGE, STATUS_OPTIONS } from "@/lib/shipmentStatus";
 import { useChangeShipmentStatus } from "@/hooks/useChangeShipmentStatus";
+import { ApiError } from "@/api";
 import type { StaffShipment, ShipmentStatus } from "@/types";
 
 export function UpdateStatusPanel({ shipment }: { shipment: StaffShipment }) {
@@ -74,7 +75,9 @@ export function UpdateStatusPanel({ shipment }: { shipment: StaffShipment }) {
           )}
           {changeStatus.isError && (
             <p role="alert" className="text-sm text-danger">
-              Something went wrong updating the status. Please try again.
+              {changeStatus.error instanceof ApiError
+                ? changeStatus.error.message
+                : "Something went wrong updating the status. Please try again."}
             </p>
           )}
           {changeStatus.isSuccess && <p className="text-sm text-success">Status updated.</p>}

@@ -7,6 +7,7 @@ interface Env {
   NODE_ENV: "development" | "production" | "test";
   PORT: number;
   HOST?: string;
+  INTERNAL_API_PORT?: number;
   DATABASE_URL: string;
   JWT_SECRET: string;
   JWT_EXPIRES_IN_MINUTES: number;
@@ -21,6 +22,11 @@ const schema = Joi.object({
   NODE_ENV: Joi.string().valid("development", "production", "test").default("development"),
   PORT: Joi.number().port().default(4000),
   HOST: Joi.string().hostname(),
+  // Deliberately a different name than `PORT` and never set by Render itself — used only
+  // by the combined single-service deploy (see root package.json's `start:server`) so this
+  // process's real bind port can never be confused with whatever `$PORT` the platform
+  // injects for the public-facing Next.js process running alongside it.
+  INTERNAL_API_PORT: Joi.number().port(),
   DATABASE_URL: Joi.string()
     .uri({ scheme: ["postgres", "postgresql"] })
     .required(),
@@ -55,3 +61,17 @@ if (error) {
 
 export const env = value as Env;
 export const isProduction = env.NODE_ENV === "production";
+
+// `INTERNAL_API_PORT`, when set, always wins over `PORT` — see the schema comment above.
+if (env.INTERNAL_API_PORT) {
+  env.PORT = env.INTERNAL_API_PORT;
+}
+
+// A missing `HOST` defaults to loopback-only in production rather than "all interfaces".
+// This process is only ever meant to be reached through the Next.js rewrite (or directly
+// in local dev); binding 0.0.0.0 by default in production would make it internet-reachable
+// the moment anything upstream of it (an env var, a platform default) doesn't behave as
+// expected — a silent security regression this default rules out entirely.
+if (!env.HOST && isProduction) {
+  env.HOST = "127.0.0.1";
+}

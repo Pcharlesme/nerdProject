@@ -30,7 +30,8 @@ const PAGE_SIZE = 10;
 
 export default function StaffDashboardPage() {
   const router = useRouter();
-  const { data: dashboard } = useDashboard();
+  const { data: dashboard, isLoading: isDashboardLoading, isError: isDashboardError } = useDashboard();
+  const dashboardUnknown = isDashboardLoading || isDashboardError;
 
   const [searchValue, setSearchValue] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -139,14 +140,17 @@ export default function StaffDashboardPage() {
             <div className="flex items-center gap-2">
               <h2 className="font-semibold text-text">Orders</h2>
               <span className="rounded-full bg-background px-2.5 py-1 text-xs font-semibold text-muted">
-                {dashboard?.totalShipments ?? 0}
+                {dashboardUnknown ? "…" : (dashboard?.totalShipments ?? 0)}
               </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {FILTERS.map((filter) => {
-                const count =
-                  filter.key === "ALL" ? dashboard?.totalShipments ?? 0 : dashboard?.byStatus[filter.key] ?? 0;
+                const count = dashboardUnknown
+                  ? "…"
+                  : filter.key === "ALL"
+                    ? (dashboard?.totalShipments ?? 0)
+                    : (dashboard?.byStatus[filter.key] ?? 0);
                 const active = activeFilter === filter.key;
                 return (
                   <button

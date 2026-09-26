@@ -1,11 +1,11 @@
 "use client";
 
-import { BarChart3, CheckCircle2, Clock, Package, Truck } from "lucide-react";
+import { AlertCircle, BarChart3, CheckCircle2, Clock, Package, Truck } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
 import { DeliveryPerformancePanel } from "@/components/staff/DeliveryPerformancePanel";
 
 export default function StaffAnalyticsPage() {
-  const { data: dashboard } = useDashboard();
+  const { data: dashboard, isLoading, isError } = useDashboard();
 
   const total = dashboard?.totalShipments ?? 0;
   const inTransit = dashboard?.byStatus.IN_TRANSIT ?? 0;
@@ -23,13 +23,32 @@ export default function StaffAnalyticsPage() {
       </div>
 
       <div className="px-5 py-6 lg:px-8">
-        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          <StatTile icon={Package} label="Total shipments" value={total} />
-          <StatTile icon={Truck} label="In transit" value={inTransit} tone="primary" />
-          <StatTile icon={CheckCircle2} label="Delivered" value={delivered} tone="success" />
-          <StatTile icon={Clock} label="Delayed" value={delayed} tone="warning" />
-          <StatTile icon={Clock} label="On-time rate" value={`${onTimeRate}%`} tone="warning" />
-        </div>
+        {isError && (
+          <div
+            role="alert"
+            className="mb-4 flex items-start gap-2 rounded-xl border border-danger-border bg-danger-bg px-4 py-3 text-sm text-danger"
+          >
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            Couldn&apos;t load the fleet summary. The numbers below may be incomplete — try refreshing.
+          </div>
+        )}
+
+        {isLoading ? (
+          <div role="status" className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <span className="sr-only">Loading summary…</span>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="h-19 animate-pulse rounded-2xl border border-border bg-surface" aria-hidden="true" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <StatTile icon={Package} label="Total shipments" value={total} />
+            <StatTile icon={Truck} label="In transit" value={inTransit} tone="primary" />
+            <StatTile icon={CheckCircle2} label="Delivered" value={delivered} tone="success" />
+            <StatTile icon={Clock} label="Delayed" value={delayed} tone="warning" />
+            <StatTile icon={Clock} label="On-time rate" value={`${onTimeRate}%`} tone="warning" />
+          </div>
+        )}
 
         <div className="mt-6">
           <DeliveryPerformancePanel />

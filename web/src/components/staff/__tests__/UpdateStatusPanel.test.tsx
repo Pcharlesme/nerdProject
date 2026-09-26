@@ -64,6 +64,6 @@ describe("UpdateStatusPanel", () => {
     await user.selectOptions(screen.getByLabelText(/new status/i), "DELIVERED");
     await user.click(screen.getByRole("button", { name: /^update status$/i }));
 
-    expect(await screen.findByText(/something went wrong updating the status/i)).toBeInTheDocument();
+    expect(await screen.findByText("Server error")).toBeInTheDocument();
   });
 });

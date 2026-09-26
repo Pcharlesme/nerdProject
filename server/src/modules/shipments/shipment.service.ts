@@ -161,11 +161,17 @@ export async function addTrackingEvent(trackingNumber: string, input: AddEventBo
 
   await prisma.$transaction([
     prisma.trackingEvent.create({ data: { ...input, shipmentId } }),
+    // `updatedAt` moves with the same guard as status/location — a back-filled older
+    // event is inert everywhere, so it can't jump the shipment to the top of a
+    // "most recently updated" staff list either.
     prisma.shipment.updateMany({
       where: { id: shipmentId, events: { none: { occurredAt: { gt: input.occurredAt } } } },
-      data: { currentLocation: input.location, ...(input.status && { status: input.status }) },
+      data: {
+        currentLocation: input.location,
+        ...(input.status && { status: input.status }),
+        updatedAt: new Date(),
+      },
     }),
-    prisma.shipment.update({ where: { id: shipmentId }, data: { updatedAt: new Date() } }),
   ]);
 
   return getStaffShipment(trackingNumber);

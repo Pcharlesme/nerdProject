@@ -6,6 +6,7 @@ import { StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { useAddInternalNote } from "@/hooks/useAddInternalNote";
+import { ApiError } from "@/api";
 import type { StaffShipment } from "@/types";
 
 export function AddInternalNotePanel({ shipment }: { shipment: StaffShipment }) {
@@ -60,7 +61,9 @@ export function AddInternalNotePanel({ shipment }: { shipment: StaffShipment }) 
           )}
           {addInternalNote.isError && (
             <p role="alert" className="text-sm text-danger">
-              Something went wrong saving this note. Please try again.
+              {addInternalNote.error instanceof ApiError
+                ? addInternalNote.error.message
+                : "Something went wrong saving this note. Please try again."}
             </p>
           )}
           {addInternalNote.isSuccess && <p className="text-sm text-success">Note added.</p>}

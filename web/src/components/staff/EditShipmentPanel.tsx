@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { useUpdateShipment } from "@/hooks/useUpdateShipment";
+import { ApiError } from "@/api";
 import type { EditShipmentInput, StaffShipment } from "@/types";
 
 function toDateTimeLocal(iso: string): string {
@@ -52,7 +53,13 @@ export function EditShipmentPanel({ shipment }: EditShipmentPanelProps) {
     });
   };
 
-  const error = validationError ?? (updateShipment.isError ? "Something went wrong saving these changes." : null);
+  const error =
+    validationError ??
+    (updateShipment.error instanceof ApiError
+      ? updateShipment.error.message
+      : updateShipment.isError
+        ? "Something went wrong saving these changes."
+        : null);
 
   return (
     <CollapsiblePanel icon={Pencil} title="Edit shipment" subtitle="Update route, ETA and shipment details" tone="cta">
@@ -91,13 +98,13 @@ export function EditShipmentPanel({ shipment }: EditShipmentPanelProps) {
               label="Package count"
               type="number"
               value={String(fields.packageCount)}
-              onChange={(v) => update("packageCount", Math.max(0, Number(v) || 0))}
+              onChange={(v) => update("packageCount", Math.max(1, Number(v) || 1))}
             />
             <Field
               label="Weight (kg)"
               type="number"
               value={String(fields.weightKg)}
-              onChange={(v) => update("weightKg", Math.max(0, Number(v) || 0))}
+              onChange={(v) => update("weightKg", Math.max(0.1, Number(v) || 0.1))}
             />
           </div>
 

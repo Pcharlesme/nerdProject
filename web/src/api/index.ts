@@ -9,7 +9,9 @@ export { queryKeys } from "./queryKeys";
 export * as shipmentsApi from "./shipments";
 export * as enquiriesApi from "./enquiries";
 export * as authApi from "./auth";
-export * as dashboardApi from "./dashboard";
-export * as analyticsApi from "./analytics";
+// `dashboardApi` and `analyticsApi` are two names for the same small, consolidated
+// module (`./staff`) — see the note there.
+export * as dashboardApi from "./staff";
+export * as analyticsApi from "./staff";
 
 export type * from "./types";

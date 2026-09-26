@@ -161,7 +161,6 @@ export default function CreateShipmentPage() {
               <Field
                 label="Tracking number"
                 value={form.trackingNumber}
-                disable={true}
                 onChange={(v) => set("trackingNumber", v)}
                 placeholder="Leave blank to auto-generate"
               />

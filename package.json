@@ -13,8 +13,8 @@
     "build:web": "npm run build --workspace=web",
     "build:server": "npm run build --workspace=server",
     "build": "npm run build:web && npm run build:server",
-    "start:web": "npm run start --workspace=web",
-    "start:server": "PORT=4000 HOST=127.0.0.1 npm run start --workspace=server",
+    "start:web": "npm run start --workspace=web -- -p \"${PORT:-3000}\"",
+    "start:server": "INTERNAL_API_PORT=4000 HOST=127.0.0.1 npm run start --workspace=server",
     "start": "concurrently -n web,server -c blue,green --kill-others \"npm:start:web\" \"npm:start:server\"",
     "test:web": "npm test --workspace=web",
     "test:server": "npm test --workspace=server",
@@ -22,6 +22,5 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
-  },
-  "packageManager": "yarn@3.6.4+sha512.e70835d4d6d62c07be76b3c1529cb640c7443f0fe434ef4b6478a5a399218cbaf1511b396b3c56eb03bc86424cff2320f6167ad2fde273aa0df6e60b7754029f"
+  }
 }
