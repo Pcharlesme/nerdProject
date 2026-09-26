@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Neon: DATABASE_URL is the pooled connection string, DIRECT_URL the direct one used by migrations.
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum ShipmentStatus {
+  CREATED
+  COLLECTED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  DELAYED
+  EXCEPTION
+}
+
+enum EnquiryCategory {
+  DELAY
+  DAMAGE
+  ADDRESS_CHANGE
+  MISSING_ITEM
+  OTHER
+}
+
+enum EnquiryStatus {
+  OPEN
+  RESOLVED
+}
+
+model StaffUser {
+  id           String         @id @default(uuid()) @db.Uuid
+  email        String         @unique
+  name         String
+  passwordHash String         @map("password_hash")
+  notes        InternalNote[]
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("staff_users")
+}
+
+model Shipment {
+  id                          String          @id @default(uuid()) @db.Uuid
+  trackingNumber              String          @unique @map("tracking_number")
+  status                      ShipmentStatus  @default(CREATED)
+  originCity                  String          @map("origin_city")
+  originRegion                String          @map("origin_region")
+  destinationCity             String          @map("destination_city")
+  destinationRegion           String          @map("destination_region")
+  currentLocation             String          @map("current_location")
+  estimatedDeliveryAt         DateTime        @map("estimated_delivery_at") @db.Timestamptz(3)
+  previousEstimatedDeliveryAt DateTime?       @map("previous_estimated_delivery_at") @db.Timestamptz(3)
+  etaNote                     String?         @map("eta_note")
+  serviceLevel                String          @map("service_level")
+  packageCount                Int             @map("package_count")
+  weightKg                    Decimal         @map("weight_kg") @db.Decimal(10, 2)
+  referenceCode               String          @map("reference_code")
+  senderName                  String          @map("sender_name")
+  senderEmail                 String?         @map("sender_email")
+  senderPhone                 String?         @map("sender_phone")
+  senderAddress               String?         @map("sender_address")
+  receiverName                String          @map("receiver_name")
+  receiverEmail               String?         @map("receiver_email")
+  receiverPhone               String?         @map("receiver_phone")
+  receiverAddress             String?         @map("receiver_address")
+  events                      TrackingEvent[]
+  notes                       InternalNote[]
+  enquiries                   Enquiry[]
+  createdAt                   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status])
+  @@index([updatedAt])
+  @@map("shipments")
+}
+
+model TrackingEvent {
+  id         String          @id @default(uuid()) @db.Uuid
+  shipmentId String          @map("shipment_id") @db.Uuid
+  shipment   Shipment        @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  occurredAt DateTime        @map("occurred_at") @db.Timestamptz(3)
+  location   String
+  message    String
+  status     ShipmentStatus?
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([shipmentId, occurredAt])
+  @@map("tracking_events")
+}
+
+model InternalNote {
+  id         String    @id @default(uuid()) @db.Uuid
+  shipmentId String    @map("shipment_id") @db.Uuid
+  shipment   Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  authorId   String    @map("author_id") @db.Uuid
+  author     StaffUser @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  message    String
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([shipmentId, createdAt])
+  @@map("internal_notes")
+}
+
+model Enquiry {
+  id             String          @id @default(uuid()) @db.Uuid
+  shipmentId     String          @map("shipment_id") @db.Uuid
+  shipment       Shipment        @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  trackingNumber String          @map("tracking_number")
+  category       EnquiryCategory
+  message        String
+  contactEmail   String?         @map("contact_email")
+  status         EnquiryStatus   @default(OPEN)
+  resolvedAt     DateTime?       @map("resolved_at") @db.Timestamptz(3)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, createdAt])
+  @@map("enquiries")
+}
