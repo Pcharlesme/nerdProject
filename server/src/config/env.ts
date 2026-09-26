@@ -67,11 +67,13 @@ if (env.INTERNAL_API_PORT) {
   env.PORT = env.INTERNAL_API_PORT;
 }
 
-// A missing `HOST` defaults to loopback-only in production rather than "all interfaces".
-// This process is only ever meant to be reached through the Next.js rewrite (or directly
-// in local dev); binding 0.0.0.0 by default in production would make it internet-reachable
-// the moment anything upstream of it (an env var, a platform default) doesn't behave as
-// expected — a silent security regression this default rules out entirely.
+// A missing `HOST` defaults to "all interfaces" in production, because this server
+// most commonly runs as its own standalone deploy (e.g. a dedicated Render service,
+// with a separately-deployed frontend calling it directly) — that shape needs to be
+// reachable on whatever port the platform assigns, not loopback-only.
+// The one exception is the combined single-service deploy (`root package.json`'s
+// `start:server`, alongside `next start` in the same container) — there, the script
+// explicitly sets `HOST=127.0.0.1` itself, which this default never overrides.
 if (!env.HOST && isProduction) {
-  env.HOST = "127.0.0.1";
+  env.HOST = "0.0.0.0";
 }

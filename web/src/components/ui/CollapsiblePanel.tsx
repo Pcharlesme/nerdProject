@@ -13,6 +13,8 @@ interface CollapsiblePanelProps {
   defaultOpen?: boolean;
   /** "primary" (brand indigo) for customer-facing usage; "cta" (navy) for staff. */
   tone?: "primary" | "cta";
+  /** Fires whenever the panel opens or closes — e.g. to scroll it into view on open. */
+  onOpenChange?: (open: boolean) => void;
   children: ReactNode | ((controls: { close: () => void }) => ReactNode);
 }
 
@@ -22,16 +24,32 @@ const TONE_CLASSES = {
 } as const;
 
 /** A trigger row that expands into an inline panel — the shared "no dialogs" interaction pattern. */
-export function CollapsiblePanel({ icon: Icon, title, subtitle, defaultOpen = false, tone = "primary", children }: CollapsiblePanelProps) {
+export function CollapsiblePanel({
+  icon: Icon,
+  title,
+  subtitle,
+  defaultOpen = false,
+  tone = "primary",
+  onOpenChange,
+  children,
+}: CollapsiblePanelProps) {
   const [open, setOpen] = useState(defaultOpen);
   const panelId = useId();
   const toneClasses = TONE_CLASSES[tone];
+
+  const toggle = () => {
+    setOpen((value) => {
+      const next = !value;
+      onOpenChange?.(next);
+      return next;
+    });
+  };
 
   return (
     <div className="w-full">
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={toggle}
         aria-expanded={open}
         aria-controls={panelId}
         className={`group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface px-5 py-4 text-left shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${toneClasses.hover}`}
@@ -62,7 +80,14 @@ export function CollapsiblePanel({ icon: Icon, title, subtitle, defaultOpen = fa
             className="overflow-hidden"
           >
             <div className="mt-3 rounded-lg border border-border bg-surface p-5 shadow-sm sm:p-6">
-              {typeof children === "function" ? children({ close: () => setOpen(false) }) : children}
+              {typeof children === "function"
+                ? children({
+                    close: () => {
+                      setOpen(false);
+                      onOpenChange?.(false);
+                    },
+                  })
+                : children}
             </div>
           </motion.div>
         )}

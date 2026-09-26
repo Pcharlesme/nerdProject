@@ -129,12 +129,14 @@ Schema and migrations live in `server/prisma/`; the seed script is `server/src/s
 ## Testing
 
 ```bash
-npm test              # runs both workspaces' full suites (71 tests total)
+npm test              # runs both workspaces' full suites (72 tests total)
 npm run test:server   # 45 tests — Supertest against a real, ephemeral Postgres (via embedded-postgres)
-npm run test:web      # 26 tests — Vitest + React Testing Library, API layer mocked at the boundary
+npm run test:web      # 27 tests — Vitest + React Testing Library, API layer mocked at the boundary
 ```
 
 What's covered (not exhaustive — see the test files themselves for the full list): public tracking lookup (found/not-found/validation), staff auth (wrong password, missing/expired session, every `/api/staff/*` route rejecting an unauthenticated request), shipment creation/validation/duplicate-tracking-number rejection, status changes and event ordering, enquiry creation and resolution, rate limiting, and the frontend's TanStack Query hooks (loading → success/error, cache writes, mutation states) plus full component-level flows (`EnquiryPanel`, `UpdateStatusPanel`, `TrackingSearch`, `StaffAuthProvider`).
+
+![Backend test suite passing](web/public/readme/server-tests-passing.png)
 
 ## API overview
 

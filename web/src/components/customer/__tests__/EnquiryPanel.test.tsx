@@ -28,6 +28,17 @@ describe("EnquiryPanel", () => {
     vi.mocked(enquiriesApi.createEnquiry).mockReset();
   });
 
+  it("scrolls the panel into view when it's opened", async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+
+    const user = userEvent.setup();
+    renderPanel();
+    await openPanel(user);
+
+    expect(scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth", block: "start" }));
+  });
+
   it("blocks submission and shows an inline error when the message is empty", async () => {
     const user = userEvent.setup();
     renderPanel();

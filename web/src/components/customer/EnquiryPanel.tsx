@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { ChevronDown, Mail, MessageCircleQuestion, Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +15,7 @@ interface EnquiryPanelProps {
 }
 
 export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
+  const sectionRef = useRef<HTMLDivElement>(null);
   const submitEnquiry = useSubmitEnquiry();
   const [trackingInput, setTrackingInput] = useState(trackingNumber ?? "");
   const [category, setCategory] = useState<EnquiryCategory>(
@@ -60,11 +61,14 @@ export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
           : "idle";
 
   return (
-    <div className="w-full max-w-2xl">
+    <div ref={sectionRef} className="w-full max-w-2xl scroll-mt-6">
       <CollapsiblePanel
         icon={MessageCircleQuestion}
         title="Something not right?"
         subtitle="Send us an enquiry about this shipment"
+        onOpenChange={(open) => {
+          if (open) sectionRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+        }}
       >
         {({ close }) =>
           state === "success" ? (
