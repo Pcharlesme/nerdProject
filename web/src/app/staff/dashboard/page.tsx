@@ -274,7 +274,7 @@ function OrderRow({
   onCopy: (trackingNumber: string) => void;
 }) {
   return (
-    <tr className="border-b border-border text-sm transition-colors last:border-0 hover:bg-background">
+    <tr className="border-b border-border text-sm transition-colors last:border-0 hover:bg-primary-soft">
       <td className="px-5 py-5">
         <Link href={`/staff/shipments/${shipment.trackingNumber}`} className="font-semibold text-text hover:underline">
           {shipment.trackingNumber}
@@ -302,7 +302,7 @@ function OrderRow({
             type="button"
             onClick={() => onCopy(shipment.trackingNumber)}
             aria-label={`Copy tracking number ${shipment.trackingNumber}`}
-            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-background hover:text-text"
+            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-soft hover:text-text"
           >
             {copied ? <Check className="size-4 text-success" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
           </button>
@@ -352,7 +352,7 @@ function OrderCard({
           type="button"
           onClick={() => onCopy(shipment.trackingNumber)}
           aria-label={`Copy tracking number ${shipment.trackingNumber}`}
-          className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border text-muted transition-colors hover:text-text"
+          className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-primary/40 hover:bg-primary-soft hover:text-text"
         >
           {copied ? <Check className="size-4 text-success" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
         </button>

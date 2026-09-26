@@ -45,7 +45,7 @@ export function PerformanceCalendar({ availableDates, selected, onSelect }: Perf
           type="button"
           onClick={() => goToMonth(-1)}
           aria-label="Previous month"
-          className="flex size-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-background hover:text-text"
+          className="flex size-7 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-soft hover:text-text"
         >
           <ChevronLeft className="size-4" aria-hidden="true" />
         </button>
@@ -54,7 +54,7 @@ export function PerformanceCalendar({ availableDates, selected, onSelect }: Perf
           type="button"
           onClick={() => goToMonth(1)}
           aria-label="Next month"
-          className="flex size-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-background hover:text-text"
+          className="flex size-7 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-soft hover:text-text"
         >
           <ChevronRight className="size-4" aria-hidden="true" />
         </button>
@@ -85,9 +85,9 @@ export function PerformanceCalendar({ availableDates, selected, onSelect }: Perf
               aria-label={isAvailable ? `${iso} — view this day` : `${iso} — no performance data`}
               className={`flex size-9 items-center justify-center rounded-full text-sm transition-colors ${
                 isSelected
-                  ? "bg-cta font-semibold text-white"
+                  ? "cursor-pointer bg-cta font-semibold text-white"
                   : isAvailable
-                    ? "text-text hover:bg-background"
+                    ? "cursor-pointer text-text hover:bg-primary-soft"
                     : "cursor-not-allowed text-border"
               }`}
             >

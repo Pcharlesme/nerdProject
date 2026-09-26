@@ -3,18 +3,23 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { InfoField, SectionLabel } from "@/components/ui/InfoField";
 import { StatusStepper } from "@/components/shipments/StatusStepper";
 import { TrackingTimeline } from "@/components/shipments/TrackingTimeline";
-import { formatDateTime } from "@/lib/formatDate";
+import { formatDateTime, formatDateWithWeekday } from "@/lib/formatDate";
 import type { PublicShipment } from "@/types";
 
 export function TrackingResult({ shipment }: { shipment: PublicShipment }) {
   return (
     <div className="w-full max-w-2xl rounded-lg border border-border bg-surface p-6 text-left shadow-md sm:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm text-muted">Tracking number</p>
           <p className="font-mono text-lg font-semibold text-text">{shipment.trackingNumber}</p>
         </div>
-        <StatusBadge status={shipment.status} />
+        <div className="flex flex-col items-end gap-1.5">
+          <StatusBadge status={shipment.status} />
+          <p className="text-sm text-muted">
+            Est. delivery <span className="font-bold text-text">{formatDateWithWeekday(shipment.estimatedDeliveryAt)}</span>
+          </p>
+        </div>
       </div>
 
       {shipment.etaNote && (

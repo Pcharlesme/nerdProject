@@ -22,12 +22,16 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { Logo, Wordmark } from "@/components/ui/Logo";
 
 const NAV_LINKS: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/staff/shipments", label: "Orders", icon: Package },
   { href: "/staff/enquiries", label: "Enquiries", icon: Inbox },
   { href: "/staff/analytics", label: "Analytics", icon: ChartColumnBig },
 ];
 
-const DASHBOARD_LINK = { href: "/staff/dashboard", label: "Dashboard", icon: LayoutGrid };
+const ORDER_LINK = { href: "/staff/shipments", label: "Orders", icon: Package };
+const DASHBOARD_LINK = {
+  href: "/staff/dashboard",
+  label: "Dashboard",
+  icon: LayoutGrid,
+};
 
 export function StaffSidebar() {
   const pathname = usePathname();
@@ -45,7 +49,8 @@ export function StaffSidebar() {
     .slice(0, 2)
     .toUpperCase();
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
   const handleLogout = () => {
     logout();
@@ -65,7 +70,7 @@ export function StaffSidebar() {
           onClick={() => setMobileOpen((value) => !value)}
           aria-expanded={mobileOpen}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          className="flex size-9 items-center justify-center rounded-md border border-border text-text"
+          className="flex size-9 cursor-pointer items-center justify-center rounded-md border border-border text-text transition-colors hover:border-primary/40 hover:bg-primary-soft"
         >
           {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
@@ -94,17 +99,22 @@ export function StaffSidebar() {
             {initials}
           </span>
           <div className="min-w-0 flex-1" title={email ?? undefined}>
-            <p className="truncate text-sm font-semibold text-text">{name ?? "Staff"}</p>
+            <p className="truncate text-sm font-semibold text-text">
+              {name ?? "Staff"}
+            </p>
             <p className="text-xs text-muted">Staff</p>
           </div>
           <Link
             href="/staff/enquiries"
             aria-label={`Notifications${openEnquiries > 0 ? ` — ${openEnquiries} open enquiries` : ""}`}
-            className="relative flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-background hover:text-text"
+            className="relative flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-soft hover:text-text"
           >
             <Bell className="size-4" aria-hidden="true" />
             {openEnquiries > 0 && (
-              <span className="absolute right-1 top-1 size-2 rounded-full bg-danger" aria-hidden="true" />
+              <span
+                className="absolute right-1 top-1 size-2 rounded-full bg-danger"
+                aria-hidden="true"
+              />
             )}
           </Link>
         </div>
@@ -118,7 +128,10 @@ export function StaffSidebar() {
           Logout
         </button>
 
-        <SidebarNav isActive={isActive} badges={{ "/staff/enquiries": openEnquiries }} />
+        <SidebarNav
+          isActive={isActive}
+          badges={{ "/staff/enquiries": openEnquiries }}
+        />
 
         <div className="mt-auto">
           <ExceptionsCard count={exceptions} />
@@ -145,11 +158,24 @@ function SidebarNav({
         className={`flex items-center gap-3 rounded-2xl px-4 py-8 text-sm font-semibold transition-colors ${
           isActive(DASHBOARD_LINK.href)
             ? "bg-cta text-white"
-            : "border border-border text-text hover:bg-background"
+            : "border border-border text-text hover:bg-primary-soft"
         }`}
       >
         <DASHBOARD_LINK.icon className="size-5" aria-hidden="true" />
         {DASHBOARD_LINK.label}
+      </Link>
+
+      <Link
+        href={ORDER_LINK.href}
+        onClick={onNavigate}
+        className={`flex items-center gap-3 rounded-2xl px-4 py-8 text-sm font-semibold transition-colors ${
+          isActive(ORDER_LINK.href)
+            ? "bg-cta text-white"
+            : "border border-border text-text hover:bg-primary-soft"
+        }`}
+      >
+        <ORDER_LINK.icon className="size-5" aria-hidden="true" />
+        {ORDER_LINK.label}
       </Link>
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -163,7 +189,7 @@ function SidebarNav({
               className={`relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border p-3.5 text-sm font-medium transition-colors ${
                 isActive(link.href)
                   ? "border-cta/30 bg-cta/5 text-cta"
-                  : "border-border text-text hover:border-cta/30 hover:bg-background"
+                  : "border-border text-text hover:border-cta/30 hover:bg-primary-soft"
               }`}
             >
               {badge > 0 && (
@@ -194,7 +220,11 @@ function ExceptionsCard({ count }: { count: number }) {
           clear ? "bg-success-bg text-success" : "bg-white text-danger"
         }`}
       >
-        {clear ? <CheckCircle2 className="size-5" aria-hidden="true" /> : <AlertTriangle className="size-5" aria-hidden="true" />}
+        {clear ? (
+          <CheckCircle2 className="size-5" aria-hidden="true" />
+        ) : (
+          <AlertTriangle className="size-5" aria-hidden="true" />
+        )}
       </span>
 
       <p className="mt-2.5 text-sm font-semibold text-text">

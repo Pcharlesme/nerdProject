@@ -4,21 +4,25 @@
   --color-text: #0c0d0d; /* ink */
   --color-muted: #6b7280;
   --color-background: #fafafa; /* paper */
+   
   --color-surface: #ffffff; /* white — elevated above the paper page background */
   --color-border: #e2e2e6; /* line */
+  --color-border-strong: #cdd3dd; /* a more visible neutral border for surfaces (e.g. Delivery
+     performance) that would otherwise blend into the page — still grey, just higher contrast */
 
   /* ---- Color: brand ---- */
-  --color-primary: #4338ca;
-  --color-primary-soft: #eef0fe;
-  --color-primary-hover: #3730a3;
-  --color-primary-active: #312e81;
+  /* One shared navy accent across customer and staff — `--color-primary` (customer-facing
+     copy) and `--color-cta` (staff action buttons) are intentionally kept as separate token
+     names for readability at call sites, but their values are always kept in sync. */
+  --color-primary: #172554;
+  --color-primary-soft: #eef2fb;
+  --color-primary-hover: #24365f;
+  --color-primary-active: #0f1a3d;
   --color-on-primary: #ffffff;
 
-  /* ---- Color: staff CTA (navy, not pure black — used for every staff action/button
-     so the whole staff area reads as one consistent accent instead of a mix of
-     black and the brand indigo, which is reserved for "in transit" + the logo). ---- */
+  /* ---- Color: staff CTA — same navy as --color-primary above, see note there. ---- */
   --color-cta: #172554;
-  --color-cta-soft: #eff3fb;
+  --color-cta-soft: #eef2fb;
 
   /* ---- Color: semantic (text/bg/border triplets, each pair AA-contrast checked) ---- */
   --color-success: #16a34a;

@@ -59,6 +59,8 @@ A found shipment shows its status in plain language with a distinct icon and col
 
 A collapsible enquiry form (tracking number, category, message) lets a customer flag a problem without leaving the page. Every screen is responsive down to a single mobile column, with no horizontal scrolling anywhere, including the timeline.
 
+The landing page itself is a single, static, server-rendered hero (search box centered under the heading, a faint grid texture with a cursor-following spotlight behind it) — see [§7](#7-performance) for why it's built this way.
+
 ## 4. Staff Experience
 
 | Area | What it does |
@@ -81,7 +83,7 @@ The sidebar (Dashboard / Orders / Enquiries / Analytics) is fixed to the viewpor
 ## 5. UX & Design
 
 - A calm, customer-first tracking experience; a denser, operations-focused staff interface — deliberately different registers for two different audiences.
-- One consistent colour system: the brand indigo for the customer site, a dedicated navy for every staff action, and a distinct colour per shipment status (no two ever share a colour, and none relies on colour alone — every status also has its own icon and label).
+- One consistent colour system shared by both experiences: a single navy accent (`--color-primary` / `--color-cta` — same value, kept as two token names for readability at call sites) for every button, link and "in transit" status, plus a distinct colour per shipment status (no two ever share a colour, and none relies on colour alone — every status also has its own icon and label).
 - Loading, empty, error and success states are treated as first-class UI, not an afterthought — search, forms, and every staff action all have one.
 - Semantic HTML, labelled form controls, visible focus states and keyboard-operable controls throughout.
 - Consistent spacing, typography and iconography (Lucide) across both experiences.
@@ -118,7 +120,29 @@ Running the app against real data locally needs both workspaces up — see the r
 
 The full operation ↔ endpoint ↔ hook ↔ consumer map — including cache-invalidation behaviour and the couple of deliberate scope decisions (e.g. the delivery-performance chart fetching one default window) — is written out in [`../requirement/api-integration.md`](../requirement/api-integration.md), kept as a separate document so this README stays a frontend README. The backend's own route/payload/validation contract is documented in [`server/README.md`](../server/README.md).
 
-## 7. Testing
+## 7. Performance
+
+The customer landing page is a single, static page — it now ships as close to zero unnecessary work as practical:
+
+- **Server-rendered hero.** `app/page.tsx` has no `"use client"` at all; it's a plain server component (`nav` + heading + search box mount point), so the entire hero is in the very first HTML response with nothing to hydrate before it's visible. The only client components are `GridBackground` (a decorative, `aria-hidden` cursor-following grid texture — writes a CSS mask directly to a ref via a `requestAnimationFrame`-throttled `mousemove` listener, never through React state, so moving the mouse never triggers a re-render) and `TrackingLanding` (the search box + its results, the one genuinely interactive part of the page).
+- **No entrance animations on load.** The previous version faded in the hero text and ran a continuously-looping animated gradient (`motion`, `repeat: Infinity`) behind it — permanent main-thread work for a purely decorative effect. Both are gone; the hero renders in its final state immediately.
+- **Fixed a 1MB favicon.** `app/icon.png` was a 512×512 PNG saved with no compression (1,050,873 bytes) — re-encoded with `sharp` (`palette: true`) to 3,563 bytes, pixel-identical. Under Lighthouse's simulated-throttling model this alone was responsible for several seconds of apparent LCP delay (a large "competing" download the simulator weighed heavily against the actual page content), even though it loaded near-instantly on a real local connection.
+- **Stopped prefetching `/staff`** from the landing page's nav link (`prefetch={false}`) — a background RSC fetch for a route almost no visitor on `/` will follow.
+- **`sharp` added as a dependency** so `next/image`'s on-demand optimizer (resize + AVIF/WebP re-encode) actually runs in self-hosted production, not just on Vercel.
+
+**Before → after** (Lighthouse, mobile emulation, production build, median of repeated runs):
+
+| Metric | Before | After |
+|---|---|---|
+| Performance score | 70 | 97 |
+| First Contentful Paint | 1.4 s | 0.8 s |
+| Largest Contentful Paint | 4.4 s | 2.6 s |
+| Total Blocking Time | — | 30 ms |
+| Cumulative Layout Shift | — | 0 |
+
+Desktop preset scores 99 (LCP 0.6s) on the same build. The remaining ~3 points on mobile are `unused-javascript` inside the `motion` bundle (button press feedback, the collapsible panels, the calendar popover) and Next/React's own framework runtime — both genuinely used elsewhere in the app, so removing them would mean cutting required interaction states rather than dead weight.
+
+## 8. Testing
 
 Automated tests use **Vitest** + **React Testing Library**. The API layer itself is never hit over the network in tests — every test mocks at the `api/*.ts` function boundary (`vi.mock("@/api", ...)`), so hooks and components are exercised against the real TanStack Query lifecycle (loading → success/error, cache writes, invalidation) without needing a running backend or a network-mocking library.
 
@@ -139,7 +163,7 @@ npm test          # run once
 npm run test:watch  # watch mode while developing
 ```
 
-## 8. Key Decisions
+## 9. Key Decisions
 
 | Decision | Reason |
 |---|---|
@@ -150,7 +174,7 @@ npm run test:watch  # watch mode while developing
 | Responsive strategy | Desktop tables become mobile cards; the staff sidebar collapses into a top bar + menu below `lg` |
 | Testing | Mocks at the `api/` boundary rather than the network layer, so hooks are tested against the real TanStack Query lifecycle (loading/error/cache/invalidation) without a running backend |
 
-## 9. Key Packages
+## 10. Key Packages
 
 | Package | Purpose |
 |---|---|
@@ -162,7 +186,7 @@ npm run test:watch  # watch mode while developing
 | Motion | Page/element transitions, the calendar popover, the expand-chart modal |
 | Lucide React | Icon set used throughout both experiences |
 
-## 10. Trade-offs
+## 11. Trade-offs
 
 | Trade-off | Why |
 |---|---|
@@ -171,7 +195,7 @@ npm run test:watch  # watch mode while developing
 | Delivery-performance chart fetches one default window and doesn't refetch on calendar month navigation | The calendar only lets you pick among dates the backend's default window actually returned; a real "any month" picker would need the query params to follow the calendar, which wasn't required to move the chart off mock data |
 | Dashboard/shipments lists are server-paginated instead of holding every shipment in memory | The backend caps list responses at 100 rows; a "load everything client-side" model stops working the moment the seed dataset grows past a demo size |
 
-## 11. Additional Features
+## 12. Additional Features
 
 - **Analytics page** — a dedicated view beyond the dashboard's glance, with its own status breakdown and the same delivery-performance panel.
 - **Delivery performance** — a real month calendar (past dates with data are selectable, others are visibly disabled rather than hidden) and an expandable chart view.
@@ -179,7 +203,7 @@ npm run test:watch  # watch mode while developing
 - **Live status badges** — an open-enquiry count and an exceptions-needing-attention card update automatically as data changes.
 - **Sortable, filterable order list** — on both the dashboard and the full shipments page.
 
-## 12. Demo
+## 13. Demo
 
 | | |
 |---|---|
@@ -188,7 +212,7 @@ npm run test:watch  # watch mode while developing
 | Staff login | `staff@shiptrack.com` / `demo1234` |
 | Demo tracking numbers | `TRK-DEMO-001` (in transit) · `TRK-DEMO-002` (delivered) · `TRK-DEMO-003` (delayed) · `TRK-DEMO-004` (exception) · `TRK-DEMO-005` (collected) · `TRK-DEMO-006` (just created, no events yet) |
 
-## 13. Task Alignment
+## 14. Task Alignment
 
 ```
 Customer Tracking

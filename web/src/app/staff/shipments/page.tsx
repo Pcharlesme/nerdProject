@@ -200,7 +200,7 @@ function TableSkeleton() {
 
 function ShipmentRow({ shipment }: { shipment: ShipmentSummary }) {
   return (
-    <tr className="border-b border-border text-sm transition-colors last:border-0 hover:bg-background">
+    <tr className="border-b border-border text-sm transition-colors last:border-0 hover:bg-primary-soft">
       <td className="px-5 py-5">
         <Link href={`/staff/shipments/${shipment.trackingNumber}`} className="font-semibold text-text hover:underline">
           {shipment.trackingNumber}

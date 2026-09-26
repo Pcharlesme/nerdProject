@@ -74,7 +74,7 @@ export default function StaffEnquiriesPage() {
                 setPage(1);
               }}
               className={`flex-1 cursor-pointer rounded-md px-3 py-2 font-medium transition-colors ${
-                filter === option ? "bg-cta text-on-primary" : "text-muted hover:bg-background hover:text-text"
+                filter === option ? "bg-cta text-on-primary" : "text-muted hover:bg-primary-soft hover:text-text"
               }`}
             >
               {option === "ALL" ? "All" : option === "OPEN" ? "Open" : "Resolved"}
@@ -181,7 +181,7 @@ function EnquiryRow({ enquiry }: { enquiry: Enquiry }) {
           type="button"
           onClick={handleToggle}
           disabled={updateStatus.isPending}
-          className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium text-text transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium text-text transition-colors hover:bg-primary-soft disabled:cursor-not-allowed disabled:opacity-60"
         >
           {updateStatus.isPending ? (
             <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />

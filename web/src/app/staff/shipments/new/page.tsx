@@ -312,7 +312,7 @@ export default function CreateShipmentPage() {
           <div className="flex justify-end gap-3">
             <Link
               href="/staff/shipments"
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-text transition-colors hover:bg-background"
+              className="inline-flex h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-text transition-colors hover:bg-primary-soft"
             >
               Cancel
             </Link>

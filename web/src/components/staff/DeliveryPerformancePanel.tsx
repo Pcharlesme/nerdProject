@@ -47,7 +47,7 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
   const activeHighlight = highlightDate ?? defaultHighlightDate;
 
   return (
-    <section className="rounded-2xl border border-border bg-surface p-6">
+    <section className="rounded-2xl border border-border-strong bg-surface p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-text">{title}</h2>
         <div className="flex items-center gap-2">
@@ -58,8 +58,8 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
               aria-label="Choose a date to view"
               aria-expanded={calendarOpen}
               disabled={!data}
-              className={`flex size-9 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                calendarOpen ? "border-text bg-cta text-white" : "border-border text-muted hover:border-cta/30 hover:text-cta"
+              className={`flex size-9 cursor-pointer items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                calendarOpen ? "border-text bg-cta text-white" : "border-border text-muted hover:border-cta/30 hover:bg-cta-soft hover:text-cta"
               }`}
             >
               <Calendar className="size-4" aria-hidden="true" />
@@ -92,7 +92,7 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
             onClick={() => setExpanded(true)}
             aria-label="Expand chart"
             disabled={!data}
-            className="flex size-9 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-cta/30 hover:text-cta disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-cta/30 hover:bg-cta-soft hover:text-cta disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Maximize2 className="size-4" aria-hidden="true" />
           </button>
@@ -139,7 +139,7 @@ export function DeliveryPerformancePanel({ title = "Delivery performance" }: { t
                   type="button"
                   onClick={() => setExpanded(false)}
                   aria-label="Close"
-                  className="flex size-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-background hover:text-text"
+                  className="flex size-9 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-soft hover:text-text"
                 >
                   <X className="size-4" aria-hidden="true" />
                 </button>

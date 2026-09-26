@@ -85,7 +85,7 @@ export function TrackingSearch({
               type="button"
               onClick={handleClear}
               aria-label="Clear tracking number"
-              className="absolute right-3 top-1/2 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-background hover:text-text focus-visible:outline-2 focus-visible:outline-primary"
+              className="absolute right-3 top-1/2 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-soft hover:text-text focus-visible:outline-2 focus-visible:outline-primary"
             >
               <X className="size-4" aria-hidden="true" />
             </button>

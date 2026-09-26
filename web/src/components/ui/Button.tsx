@@ -35,11 +35,12 @@ interface ButtonProps extends NativeButtonProps {
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
     "bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active",
-  // Navy — the staff area's one consistent action color, distinct from the brand
-  // indigo ("primary") reserved for the customer-facing site and the logo.
+  // `cta` and `primary` share the same navy token (tokens.css) — kept as separate
+  // variant names since call sites read as "the staff action button" vs "the brand
+  // button", but they always render identically.
   cta: "bg-cta text-on-primary hover:opacity-90 active:opacity-80",
-  secondary: "bg-surface text-text border border-border hover:bg-background",
-  ghost: "bg-transparent text-text hover:bg-background",
+  secondary: "bg-surface text-text border border-border hover:border-primary/40 hover:bg-primary-soft",
+  ghost: "bg-transparent text-text hover:bg-primary-soft",
   danger: "bg-danger text-white hover:opacity-90 active:opacity-80",
 };
 

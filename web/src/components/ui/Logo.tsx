@@ -44,14 +44,18 @@ const WORDMARK_SIZE_CLASSES = {
 /** The split-color "Nerd" / "Logistics" wordmark, always paired with `Logo`. */
 export function Wordmark({
   size = "sm",
+  /** Use over a dark/photo background (e.g. the 404 page's hero image) — "Nerd" reads
+   * as white instead of near-black; "Logistics" stays the brand colour either way. */
+  light = false,
   className = "",
 }: {
   size?: keyof typeof WORDMARK_SIZE_CLASSES;
+  light?: boolean;
   className?: string;
 }) {
   return (
     <span className={`font-extrabold tracking-tight ${WORDMARK_SIZE_CLASSES[size]} ${className}`}>
-      <span className="text-text">Nerd</span>
+      <span className={light ? "text-white" : "text-text"}>Nerd</span>
       <span className="text-primary">Logistics</span>
     </span>
   );

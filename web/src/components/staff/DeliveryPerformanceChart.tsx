@@ -12,8 +12,13 @@ interface DeliveryPerformanceChartProps {
   className?: string;
 }
 
-export function DeliveryPerformanceChart({ days, highlightDate, className = "" }: DeliveryPerformanceChartProps) {
+export function DeliveryPerformanceChart({
+  days,
+  highlightDate,
+  className = "",
+}: DeliveryPerformanceChartProps) {
   const activeDate = highlightDate ?? days[days.length - 1]?.date;
+  
 
   return (
     <div className={`flex gap-3 ${className || "h-64"}`}>
@@ -33,14 +38,24 @@ export function DeliveryPerformanceChart({ days, highlightDate, className = "" }
           {days.map((day) => {
             const isHighlight = day.date === activeDate;
             const hasData = day.onTimeRate !== null;
+            
             return (
-              <div key={day.date} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
+              <div
+                key={day.date}
+                className="flex h-full flex-1 flex-col items-center justify-end gap-2"
+              >
                 {isHighlight && (
-                  <span className="mb-1 whitespace-nowrap text-xs font-semibold text-text">{shortLabel(day.date)}</span>
+                  <span className="mb-1 whitespace-nowrap text-xs font-semibold text-text">
+                    {shortLabel(day.date)}
+                  </span>
                 )}
                 <div
                   className={`w-full rounded-t-md transition-colors ${
-                    !hasData ? "bg-border/40" : isHighlight ? "bg-cta" : "bg-cta/10"
+                    !hasData
+                      ? "bg-border/70"
+                      : isHighlight 
+                        ? "bg-cta"
+                        : "bg-cta/20 border-blue-400"
                   }`}
                   style={{ height: `${hasData ? day.onTimeRate : 2}%` }}
                   title={

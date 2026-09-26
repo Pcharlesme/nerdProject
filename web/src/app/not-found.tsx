@@ -1,44 +1,37 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "motion/react";
 import { Logo, Wordmark } from "@/components/ui/Logo";
 
+// A static, server-rendered page — the truck photo is a plain background image
+// (no client JS/animation needed for a route that, by definition, never had data to load).
 export default function NotFound() {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-5 py-16 text-center sm:px-8">
-      <span className="flex items-center gap-2">
-        <Logo />
-        <Wordmark />
-      </span>
-
-      <motion.div
-        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative aspect-2/1 w-full max-w-xl overflow-hidden rounded-2xl border border-border shadow-xl"
-      >
+    <main className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-5 py-16 text-center sm:px-8">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
         <Image
           src="/brand/nerdhero.png"
           alt="A Nerd Logistics delivery truck on the road"
           fill
-          sizes="(min-width: 640px) 576px, 100vw"
+          priority
+          sizes="100vw"
           className="object-cover"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-t from-black/15 via-transparent to-transparent"
+          className="absolute inset-0 bg-linear-to-t from-black/75 via-black/45 to-black/20"
         />
-      </motion.div>
+      </div>
+
+      <span className="flex items-center gap-2">
+        <Logo />
+        <Wordmark light />
+      </span>
 
       <div>
-        <h1 className="text-2xl font-semibold text-text sm:text-3xl">
+        <h1 className="text-2xl font-semibold text-white sm:text-3xl">
           This route took a wrong turn.
         </h1>
-        <p className="mx-auto mt-3 max-w-sm text-sm text-muted">
+        <p className="mx-auto mt-3 max-w-sm text-sm text-white/80">
           The page you&apos;re looking for doesn&apos;t exist or may have moved — but your shipment is
           still on track.
         </p>
@@ -46,7 +39,7 @@ export default function NotFound() {
 
       <Link
         href="/"
-        className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         Go back home
       </Link>

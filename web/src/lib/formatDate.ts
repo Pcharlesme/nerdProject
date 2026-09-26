@@ -17,3 +17,15 @@ export function formatDateShort(iso: string): string {
     year: "numeric",
   });
 }
+
+/** "Thursday, 23 Sep 2026" — date only, no time. Used where the time would just
+ * repeat what's already shown elsewhere on the same screen (e.g. the tracking
+ * status display), so only the day matters here. */
+export function formatDateWithWeekday(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}

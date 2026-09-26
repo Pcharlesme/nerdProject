@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Mail, MessageCircleQuestion, Send } from "lucide-react";
+import { ChevronDown, Mail, MessageCircleQuestion, Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { useSubmitEnquiry } from "@/hooks/useSubmitEnquiry";
@@ -17,7 +17,9 @@ interface EnquiryPanelProps {
 export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
   const submitEnquiry = useSubmitEnquiry();
   const [trackingInput, setTrackingInput] = useState(trackingNumber ?? "");
-  const [category, setCategory] = useState<EnquiryCategory>(ENQUIRY_CATEGORIES[0].value);
+  const [category, setCategory] = useState<EnquiryCategory>(
+    ENQUIRY_CATEGORIES[0].value,
+  );
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [validationError, setValidationError] = useState(false);
@@ -71,14 +73,22 @@ export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
                 <Send className="size-4" aria-hidden="true" />
               </span>
               <p className="text-sm text-text">
-                Thanks — we&apos;ve received your enquiry and will get back to you shortly.
+                Thanks — we&apos;ve received your enquiry and will get back to
+                you shortly.
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} noValidate className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+            <form
+              onSubmit={handleSubmit}
+              noValidate
+              className="space-y-4 text-start"
+            >
+              <div className="grid gap-4 sm:grid-cols-2 ">
                 <div>
-                  <label htmlFor="enquiry-tracking" className="mb-1.5 block text-sm font-medium text-text">
+                  <label
+                    htmlFor="enquiry-tracking"
+                    className="mb-1.5 block text-sm font-medium text-text"
+                  >
                     Tracking number
                   </label>
                   <input
@@ -91,27 +101,44 @@ export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
                 </div>
 
                 <div>
-                  <label htmlFor="enquiry-category" className="mb-1.5 block text-sm font-medium text-text">
-                    What&apos;s this about?
-                  </label>
-                  <select
-                    id="enquiry-category"
-                    value={category}
-                    onChange={(event) => setCategory(event.target.value as EnquiryCategory)}
-                    className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  <label
+                    htmlFor="enquiry-category"
+                    className="mb-1.5 block text-sm font-medium text-text"
                   >
-                    {ENQUIRY_CATEGORIES.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    What&apos;s this abdfout?
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="enquiry-category"
+                      value={category}
+                      onChange={(event) =>
+                        setCategory(event.target.value as EnquiryCategory)
+                      }
+                      className="w-full appearance-none rounded-md border border-border bg-surface px-4 py-2 pr-10 text-sm text-text outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    >
+                      {ENQUIRY_CATEGORIES.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+
+                   
+
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                    <ChevronDown size={12}/>
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="enquiry-email" className="mb-1.5 block text-sm font-medium text-text">
-                  Contact email <span className="font-normal text-muted">(optional)</span>
+                <label
+                  htmlFor="enquiry-email"
+                  className="mb-1.5 block text-sm font-medium text-text"
+                >
+                  Contact email{" "}
+                  <span className="font-normal text-muted">(optional)</span>
                 </label>
                 <div className="relative">
                   <Mail
@@ -130,7 +157,10 @@ export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
               </div>
 
               <div>
-                <label htmlFor="enquiry-message" className="mb-1.5 block text-sm font-medium text-text">
+                <label
+                  htmlFor="enquiry-message"
+                  className="mb-1.5 block text-sm font-medium text-text"
+                >
                   Message
                 </label>
                 <textarea
@@ -159,7 +189,11 @@ export function EnquiryPanel({ trackingNumber }: EnquiryPanelProps) {
                 <Button type="button" variant="ghost" onClick={close}>
                   Cancel
                 </Button>
-                <Button type="submit" loading={state === "submitting"} disabled={state === "submitting"}>
+                <Button
+                  type="submit"
+                  loading={state === "submitting"}
+                  disabled={state === "submitting"}
+                >
                   Send enquiry
                 </Button>
               </div>
