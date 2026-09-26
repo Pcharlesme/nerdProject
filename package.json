@@ -12,7 +12,13 @@
     "dev": "concurrently -n web,server -c blue,green \"npm:dev:web\" \"npm:dev:server\"",
     "build:web": "npm run build --workspace=web",
     "build:server": "npm run build --workspace=server",
-    "build": "npm run build:web && npm run build:server"
+    "build": "npm run build:web && npm run build:server",
+    "start:web": "npm run start --workspace=web",
+    "start:server": "PORT=4000 HOST=127.0.0.1 npm run start --workspace=server",
+    "start": "concurrently -n web,server -c blue,green --kill-others \"npm:start:web\" \"npm:start:server\"",
+    "test:web": "npm test --workspace=web",
+    "test:server": "npm test --workspace=server",
+    "test": "npm run test:web && npm run test:server"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

@@ -7,7 +7,7 @@ describe("login rate limiting", () => {
 
   beforeAll(async () => {
     process.env.LOGIN_RATE_LIMIT_MAX = "3";
-    const { createApp } = await import("../src/app");
+    const { createApp } = await import("../app.js");
     app = createApp();
   });
 

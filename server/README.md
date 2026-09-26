@@ -183,7 +183,7 @@ git push  ──▶  Render (build + deploy, auto on every push)  ──▶  one
 | Health check | `/api/health` (routes through Next to the API, then pings Neon) |
 | Region | Ohio (`us-east-2`) — colocated with the Neon project |
 
-**Status:** `render.yaml` is complete and the build/start/health-check settings above have been exercised locally in production mode, but there is currently no confirmed live URL in this repo — the root README still lists the deployment as pending. That's the one item in this document that can't be verified by reading code; see `requirement/backendChecklist.md` item #37.
+**Status:** `render.yaml` is complete and the build/start/health-check settings above have been exercised locally in production mode, but there is currently no confirmed live URL in this repo — the root README still lists the deployment as pending. That's the one item in this document that can't be verified by reading code; see `requirement/backendChecklist.md` item #39.
 
 ## 10. Key decisions
 

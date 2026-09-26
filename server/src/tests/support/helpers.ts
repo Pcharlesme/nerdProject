@@ -1,7 +1,7 @@
 import request from "supertest";
-import { createApp } from "../../src/app";
-import { prisma } from "../../src/lib/prisma";
-import { seedDatabase } from "../../src/seed/seed";
+import { createApp } from "../../app";
+import { prisma } from "../../lib/prisma";
+import { seedDatabase } from "../../seed/seed";
 
 export const STAFF_CREDENTIALS = { email: "staff@example.test", password: "correct-horse-battery" };
 

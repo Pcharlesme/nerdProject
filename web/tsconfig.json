@@ -13,6 +13,11 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    // This workspace and server/ want different @types/node majors, so npm keeps two
+    // copies in the shared workspace node_modules (one hoisted, one nested here).
+    // Restricting typeRoots/types keeps this project's compile scoped to its own copy.
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"],
     "plugins": [
       {
         "name": "next"

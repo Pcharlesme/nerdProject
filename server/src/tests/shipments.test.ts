@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Agent } from "supertest";
 import { app, request, seed, signedInAgent, validShipmentPayload } from "./support/helpers";
-import { DEMO_STAFF_NAME } from "../src/seed/seed";
+import { DEMO_STAFF_NAME } from "../seed/seed";
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
 

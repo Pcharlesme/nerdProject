@@ -3,8 +3,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import EmbeddedPostgres from "embedded-postgres";
-import type { TestProject } from "vitest/node";
+import type EmbeddedPostgres from "embedded-postgres" with { "resolution-mode": "import" };
+import type { TestProject } from "vitest/node" with { "resolution-mode": "import" };
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -24,6 +24,9 @@ function freePort(): Promise<number> {
 }
 
 async function startEmbeddedPostgres() {
+  // embedded-postgres ships ESM-only; this file compiles as CommonJS, so a dynamic
+  // import is required regardless of the module target.
+  const { default: EmbeddedPostgres } = await import("embedded-postgres");
   const databaseDir = mkdtempSync(join(tmpdir(), "nerdshipping-pg-"));
   const port = await freePort();
   const pg = new EmbeddedPostgres({

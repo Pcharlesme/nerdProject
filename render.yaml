@@ -1,0 +1,28 @@
+# One Render web service running both processes side by side: Next.js on the
+# public $PORT Render assigns, and the Express API on a fixed loopback-only
+# port (see package.json's start:server and web/next.config.ts's rewrite).
+# Details: server/README.md §9.
+services:
+  - type: web
+    name: nerdshipping
+    runtime: node
+    region: ohio
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build && npm run db:migrate --workspace=server
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_STAFF_EMAIL
+        sync: false
+      - key: SEED_STAFF_PASSWORD
+        sync: false

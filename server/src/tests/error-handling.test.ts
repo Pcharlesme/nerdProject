@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import express from "express";
 import { Prisma } from "@prisma/client";
 import request from "supertest";
-import { errorHandler } from "../src/middleware/errorHandler";
+import { errorHandler } from "../middleware/errorHandler";
 import { app } from "./support/helpers";
 
 describe("error handling", () => {
