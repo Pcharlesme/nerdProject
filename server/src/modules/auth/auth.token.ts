@@ -18,10 +18,20 @@ interface SessionPayload {
 }
 
 // No maxAge: the cookie outlives the JWT so an expired token reaches the server and can be reported as SESSION_EXPIRED.
+//
+// `sameSite`: "lax" in dev, where the browser and API share an origin via Next's
+// rewrite. In production this app is commonly deployed as two separate origins
+// (a Vercel frontend calling a Render API directly) — a "lax" cookie is stored
+// after login but never attached to the cross-site XHR/fetch calls every staff
+// screen makes afterwards, which looks exactly like "login works, then every
+// request is 401". "none" is required for a credentialed cross-site request to
+// carry the cookie at all, and browsers only accept "none" paired with `secure`
+// (already true in production below), so this is safe to always use in production
+// even for same-origin deploys.
 export const sessionCookieOptions: CookieOptions = {
   httpOnly: true,
   secure: isProduction,
-  sameSite: "lax",
+  sameSite: isProduction ? "none" : "lax",
   path: "/",
 };
 

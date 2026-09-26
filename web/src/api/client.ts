@@ -25,3 +25,20 @@ export const apiClient = axios.create({
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
+
+// Every API function's own catch block normalizes an error through `toApiError()`
+// (errors.ts), which only ever reads `message`/`code`/`status`/`details` — never
+// `config`. But axios attaches the *entire original request* (including the raw
+// JSON body — e.g. the plaintext password on a login call) to every error object,
+// for its own debugging purposes. If that raw error is ever logged by anything
+// downstream of this client (a browser's own "uncaught in promise" handler, a
+// future console.error, a bug-reporting tool) before or instead of being
+// normalized, the request body would be logged right along with it. Stripping it
+// here, at the one place every request passes through, means no request's body
+// can ever reach a log — regardless of what does or doesn't handle the error later.
+apiClient.interceptors.response.use(undefined, (error) => {
+  if (axios.isAxiosError(error) && error.config) {
+    delete error.config.data;
+  }
+  return Promise.reject(error);
+});
