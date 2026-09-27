@@ -1,34 +1,22 @@
 # NerdShipping — API (Backend)
 
-The Express/Prisma/PostgreSQL API behind NerdShipping's shipment tracking dashboard. It serves one public read-only tracking endpoint, a public enquiry endpoint, and a session-protected `/staff/*` surface for everything staff do — create/edit shipments, change status, append tracking events and internal notes, and work enquiries. The [web/](../web) app is the only client; this document covers the API on its own. Product overview and demo links live in the [root README](../README.md).
+The Express/Prisma/PostgreSQL API behind NerdShipping's shipment tracking dashboard: one public read-only tracking endpoint, a public enquiry endpoint, and a bearer-token-protected `/staff/*` surface for everything staff do. [web/](../web) is the only client; this document covers the API on its own — product overview and demo links live in the [root README](../README.md).
 
-## 1. Overview
-
-```
-Customer → GET /api/shipments/:trackingNumber → public, read-only shipment view
-Customer → POST /api/enquiries                → public, no shipment auth required
-Staff    → POST /api/auth/login               → session cookie
-Staff    → /api/staff/*                        → shipments, enquiries, dashboard, analytics — all require the session
-```
-
-Everything under `/api/staff` is guarded on the server, not the browser — a request without a valid session is rejected with `401` before it reaches any business logic, regardless of what the frontend does or doesn't show.
-
-## 2. Architecture
+## 1. Architecture
 
 ```
 src/
 ├── index.ts              bootstrap: connect Prisma, start Express, graceful shutdown on SIGTERM/SIGINT
 ├── app.ts                middleware stack + router mounting (exported separately so tests build the app without listening on a port)
-├── config/env.ts         Joi-validated environment — throws at startup on bad/missing config, never at request time
+├── config/env.ts         Joi-validated environment — throws at startup on bad config, never at request time
 ├── middleware/
-│   ├── validate.ts         runs a Joi schema against params/query/body before the controller ever sees the request
-│   ├── requireStaff.ts      reads the session cookie (or a bearer token), rejects with 401 if missing/invalid
-│   ├── rateLimiters.ts       per-route request caps (see §6)
+│   ├── validate.ts         runs a Joi schema against params/query/body before the controller sees the request
+│   ├── requireStaff.ts      verifies the bearer access token, rejects with 401 if missing/invalid/expired
+│   ├── rateLimiters.ts       per-route request caps (§6)
 │   └── errorHandler.ts      turns any thrown error into a safe, consistent JSON response
 ├── lib/
 │   ├── AppError.ts          typed application errors (404/409/422/401/…) with a stable `code`
 │   ├── prisma.ts            the Prisma client singleton
-│   ├── domain.ts            shared enums/constants (status list, auto-generated status messages)
 │   └── validated.ts         typed accessors for a request already sanitised by `validate()`
 ├── modules/<feature>/     routes → controller → service, one folder per resource
 │   ├── auth/                login, logout, "who am I"
@@ -40,9 +28,9 @@ src/
 └── types/express.d.ts     extends Express's `Request` with `req.staff`
 ```
 
-Every module follows the same shape: **routes** wire an HTTP verb + path to a controller (with `validate()` and, for staff routes, `requireStaff` already applied at the router level in `app.ts`); **controllers** read the validated request and call a **service**; **services** are the only code that talks to Prisma. Public/staff shipment responses are built by two separate functions in `shipment.serializers.ts` — `toPublicShipment` is a hand-written **allow-list**, not a filter over the full record, so a new field added to the database is private by default until someone deliberately exposes it.
+Every module follows the same shape: **routes** wire an HTTP verb + path to a controller (`validate()` and, for staff routes, `requireStaff` already applied at the router level in `app.ts`); **controllers** read the validated request and call a **service**; **services** are the only code that talks to Prisma. Public and staff shipment responses are built by two separate functions in `shipment.serializers.ts` — `toPublicShipment` is a hand-written **allow-list**, not a filter over the full record, so a new field on the model is private by default until someone deliberately exposes it.
 
-## 3. Data model
+## 2. Data model
 
 PostgreSQL via Prisma (`prisma/schema.prisma`), five tables:
 
@@ -54,9 +42,9 @@ PostgreSQL via Prisma (`prisma/schema.prisma`), five tables:
 | `InternalNote` | staff-only | linked to its author (`StaffUser`), never reachable from a public route |
 | `Enquiry` | customer-submitted | 5-value `category` enum, `OPEN`/`RESOLVED` `status` |
 
-Schema changes go through a real migration (`prisma/migrations/`), not `db push` — `npm run db:migrate:dev` creates one locally, `npm run db:migrate` (`prisma migrate deploy`) applies pending ones in production.
+Schema changes go through a real migration (`prisma/migrations/`), never `db push` — `npm run db:migrate:dev` creates one locally, `npm run db:migrate` (`prisma migrate deploy`) applies pending ones in production.
 
-## 4. API reference
+## 3. API reference
 
 All responses are JSON. Success: `{ "data": … }` (list endpoints add `"meta": { total, page, limit, totalPages }`). Errors: `{ "error": { "code", "message", "details"?: [{ "field", "message" }] } }`.
 
@@ -65,13 +53,13 @@ All responses are JSON. Success: `{ "data": … }` (list endpoints add `"meta": 
 | `VALIDATION_ERROR` (422) | Missing/invalid field — `details[]` names each one |
 | `NOT_FOUND` (404) | Unknown tracking number or enquiry id |
 | `CONFLICT` (409) | Tracking number already in use |
-| `UNAUTHENTICATED` / `SESSION_EXPIRED` / `INVALID_CREDENTIALS` (401) | No session, expired session, or bad login |
-| `RATE_LIMITED` (429) | Too many requests from one client (see §6) |
-| `INTERNAL_ERROR` / `SERVICE_UNAVAILABLE` (500 / 503) | Unexpected failure or database unreachable — never includes a stack trace |
+| `UNAUTHENTICATED` / `SESSION_EXPIRED` / `INVALID_CREDENTIALS` (401) | No/invalid token, expired token, or bad login |
+| `RATE_LIMITED` (429) | Too many requests from one client (§5) |
+| `INTERNAL_ERROR` / `SERVICE_UNAVAILABLE` (500 / 503) | Unexpected failure or database unreachable — never a stack trace |
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/api/health` | – | Pings the database; used as Render's health check |
+| GET | `/api/health` | – | Pings the database; used as the deploy health check |
 | GET | `/api/shipments/:trackingNumber` | – | Public view — no sender/receiver/internal notes/database id |
 | POST | `/api/enquiries` | – | `{ trackingNumber, category, message, contactEmail? }`; rate limited |
 | POST | `/api/auth/login` | – | `{ email, password }` → `{ accessToken, staff }`; failures are rate limited |
@@ -85,42 +73,41 @@ All responses are JSON. Success: `{ "data": … }` (list endpoints add `"meta": 
 | PATCH | `/api/staff/shipments/:trackingNumber` | staff | Partial update — never touches `events` |
 | PATCH | `/api/staff/shipments/:trackingNumber/status` | staff | `{ status, message?, location? }` — writes a timeline event |
 | POST | `/api/staff/shipments/:trackingNumber/events` | staff | `{ occurredAt, location, message, status? }` — `occurredAt` must not be in the future |
-| POST | `/api/staff/shipments/:trackingNumber/notes` | staff | `{ message }` — author taken from the session, never from the request body |
+| POST | `/api/staff/shipments/:trackingNumber/notes` | staff | `{ message }` — author taken from the token, never the request body |
 | GET | `/api/staff/enquiries?status=&page=&limit=` | staff | Newest first |
 | PATCH | `/api/staff/enquiries/:id` | staff | `{ status: "OPEN" \| "RESOLVED" }` |
 
-Staff mutations return the updated shipment/enquiry so the caller never needs a second round trip.
+Staff mutations return the updated shipment/enquiry, so the caller never needs a second round trip.
 
-## 5. Authentication & security
+## 4. Authentication & security
 
 - **Passwords:** bcrypt, 12 rounds, never returned by any endpoint. A login against an unknown email still runs a bcrypt compare against a fixed placeholder hash, so a wrong-email and a wrong-password response take the same time — one generic `INVALID_CREDENTIALS` either way.
-- **Sessions:** a stateless JWT (`HS256`) returned as `accessToken` in the login response body and sent back as `Authorization: Bearer <token>` on every subsequent request — no cookie, no server-side session store. An expired token is reported as `SESSION_EXPIRED` (distinct from `UNAUTHENTICATED`, which covers a missing/forged/malformed token) so the frontend can tell "your session ran out" from "never logged in."
+- **Sessions:** a stateless JWT (`HS256`), returned as `accessToken` in the login response body, sent back as `Authorization: Bearer <token>` — no cookie, no server-side session store. An expired token is reported as `SESSION_EXPIRED`, distinct from `UNAUTHENTICATED` (missing/forged/malformed), so the frontend can tell "your session ran out" from "you were never signed in."
+- **Why a bearer token, not a cookie:** the frontend and API are deployed as two separate services on two different domains (§7) — a cookie would need cross-site `SameSite=None` handling that modern browsers increasingly block by default. A token in an `Authorization` header has no such restriction and isn't subject to CSRF the way an ambient cookie is, since nothing sends it automatically.
 - **The one rule that matters most:** every `/api/staff/*` route is mounted behind `requireStaff` in `app.ts`, at the router level — not inside individual controllers, where it would be easy to forget on a new route. A hidden frontend page is not a security boundary; this is.
-- **Public responses are allow-listed**, not filtered. `toPublicShipment()` only includes the fields explicitly listed in it — a new column on `Shipment` is invisible to the public API until someone deliberately adds it to the serializer, which is a safer default than trying to remember to strip new sensitive fields later.
+- **Public responses are allow-listed**, not filtered. `toPublicShipment()` only includes the fields explicitly listed in it — a new column on `Shipment` is invisible to the public API until someone deliberately adds it to the serializer.
 - **Secrets:** `server/.env` is gitignored; `.env.example` ships placeholders only, with an inline command (`openssl rand -base64 48`) for generating a real `JWT_SECRET`.
 
-## 6. Validation & rate limiting
+## 5. Validation & rate limiting
 
-Every route with user input runs a Joi schema (`validate.ts`) against `params`/`query`/`body` before its controller executes, stripping unknown keys and converting types — the same rule applies whether the request came from the real frontend or `curl`.
-
-Rate limiting (`express-rate-limit`) exists specifically to stop abuse, not just bad input:
+Every route with user input runs a Joi schema (`validate.ts`) against `params`/`query`/`body` before its controller executes — the same rule applies whether the request came from the real frontend or `curl`.
 
 | Limiter | Window | Limit | Protects against |
 |---|---|---|---|
-| `apiLimiter` (all of `/api`) | 15 min | 300 req/IP | General flooding / a basic denial-of-service attempt |
-| `loginLimiter` (`/auth/login`) | 15 min | 10 **failed** attempts/IP | Password guessing — successful logins don't count against the limit |
+| `apiLimiter` (all of `/api`) | 15 min | 300 req/IP | General flooding |
+| `loginLimiter` (`/auth/login`) | 15 min | 10 **failed** attempts/IP | Password guessing — successful logins don't count |
 | `enquiryLimiter` (`/enquiries`) | 60 min | 10 req/IP | Spam on the one public write endpoint that needs no login |
 
-All three return a `RATE_LIMITED` (429) body instead of a silent drop, so a legitimate client gets an explainable error rather than a mystery timeout.
+All three return a `RATE_LIMITED` (429) body instead of a silent drop.
 
-## 7. Testing
+## 6. Testing
 
-Vitest + Supertest against a real Postgres (`embedded-postgres`, matching Neon's Postgres 17), with the actual `prisma migrate deploy` applied — not a mocked database.
+Vitest + Supertest against a real Postgres (`embedded-postgres`, matching Neon's Postgres 17), with `prisma migrate deploy` actually applied — not a mocked database.
 
 | File | Covers |
 |---|---|
 | `public-tracking.test.ts` | Chronological ordering, no leakage of contacts/notes/ids, not-found, malformed input |
-| `auth.test.ts` | Hashing, generic invalid-credential error, bearer access token issued on login, every staff route 401s without a token, expired vs. forged tokens, logout |
+| `auth.test.ts` | Hashing, generic invalid-credential error, bearer token issued on login, every staff route 401s without one, expired vs. forged tokens, logout |
 | `shipments.test.ts` | Create (incl. duplicate → 409), edit (history untouched, ETA history kept), status/events (back-filled events don't rewind status, future dates rejected, invalid status rejected), internal notes, list/search/filter/sort/paginate |
 | `enquiries.test.ts` | Submit → visible to staff → resolve, unknown tracking number rejected, field validation |
 | `analytics.test.ts` | On-time-rate calculation, date-range validation, staff-only |
@@ -128,96 +115,51 @@ Vitest + Supertest against a real Postgres (`embedded-postgres`, matching Neon's
 | `error-handling.test.ts` | Unexpected failures never leak internals; malformed JSON is a clean 422, not a crash |
 
 ```bash
-npm test --workspace=server        # from the repo root
-npm test                           # from server/
+npm test --workspace=server   # from the repo root
+npm test                      # from server/
 ```
 
 Set `TEST_DATABASE_URL` to point at an existing Postgres instead of spinning up an embedded one — **its tables are truncated on every run**, so never point it at real data.
 
-## 8. Local setup
+## 7. Local setup & deployment
 
-Prerequisites: Node 22+, npm 10+, and a [Neon](https://neon.tech) Postgres project (there's no local database — development runs against Neon too).
+Prerequisites: Node 22+, npm 10+, and a [Neon](https://neon.tech) Postgres project (no local database needed — dev runs against Neon too).
 
 ```bash
 npm install                                # from the repo root (npm workspaces)
 cp server/.env.example server/.env         # paste Neon URLs, set JWT_SECRET
-npm run db:setup --workspace=server        # prisma migrate deploy + seed
+
 npm run dev --workspace=server             # API on :4000
 ```
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
-| `DATABASE_URL` | yes | — | Neon's **pooled** connection string (`-pooler` host) — used at runtime |
+| `DATABASE_URL` | yes | — | Neon's **pooled** connection string (`-pooler` host) — runtime queries |
 | `DIRECT_URL` | yes | — | Neon's **direct** connection string — used only by `prisma migrate` |
-| `JWT_SECRET` | yes | — | ≥ 32 characters, signs the session token |
-| `JWT_EXPIRES_IN_MINUTES` | no | `480` | Session lifetime |
+| `JWT_SECRET` | yes | — | ≥ 32 characters, signs the access token |
+| `JWT_EXPIRES_IN_MINUTES` | no | `480` | Token lifetime |
 | `PORT` / `HOST` | no | `4000` / all interfaces | Where the API listens |
-| `CORS_ORIGIN` | no | `http://localhost:3000` | Origins allowed to call the API directly (comma-separated) |
-| `TRUST_PROXY` | no | `0` | Proxy hops to trust for the client's real IP, so rate limits are per-client, not per-load-balancer |
-| `API_RATE_LIMIT_MAX` / `LOGIN_RATE_LIMIT_MAX` / `ENQUIRY_RATE_LIMIT_MAX` | no | `300` / `10` / `10` | See §6 |
-| `SEED_STAFF_EMAIL` / `SEED_STAFF_PASSWORD` | no | demo values below | Account created by `db:seed` |
+| `CORS_ORIGIN` | no | `http://localhost:3000` | Origins allowed to call the API (comma-separated — the deployed frontend's origin, in production) |
+| `TRUST_PROXY` | no | `0` | Proxy hops to trust for the client's real IP, so rate limits are per-client |
+| `API_RATE_LIMIT_MAX` / `LOGIN_RATE_LIMIT_MAX` / `ENQUIRY_RATE_LIMIT_MAX` | no | `300` / `10` / `10` | See §5 |
+| `SEED_STAFF_EMAIL` / `SEED_STAFF_PASSWORD` | no | demo values, §8 | Account created by `db:seed` |
 
-`npm run db:seed --workspace=server` resets the database to the demo dataset at any time (it truncates every table first — deterministic, safe to re-run).
+**Deployment:** the API is deployed to [Render](https://render.com) as a standalone Node service (build: `npm ci && npm run build && npm run db:migrate`, start: `npm start`); the frontend is deployed separately to [Vercel](https://vercel.com). Neon hosts Postgres. Because the two services live on different domains, the frontend calls the API cross-origin — which is exactly why auth is a bearer token rather than a cookie (§4). `render.yaml` pins the region to `us-east-2` (Ohio), matching Neon's project region, so the database round trip doesn't cross the country on every query.
 
-## 9. Deployment: Render + Neon (+ why "AWS" shows up)
+## 8. Demo data
 
-```
-git push  ──▶  Render (build + deploy, auto on every push)  ──▶  one Node service
-                                                                    ├─ next start        (public $PORT)
-                                                                    └─ node dist/index.js (127.0.0.1:4000, private)
-                                                                          │
-                                                                          ▼
-                                                                    Neon Postgres (managed)
-```
+Staff login: `staff@shiptrack.com` / `demo1234` (or whatever `SEED_STAFF_EMAIL`/`SEED_STAFF_PASSWORD` were set to). Tracking numbers: see the [root README](../README.md#demo-data).
 
-- **Neon manages the database.** It's a hosted, serverless Postgres — connection pooling, branching, and automatic suspend/resume of the compute are Neon's job, not this codebase's. The app just holds two connection strings: `DATABASE_URL` (pooled, for normal queries) and `DIRECT_URL` (direct, because `prisma migrate` needs a non-pooled connection).
-- **Prisma is the only thing that touches the database schema.** `prisma/schema.prisma` is the source of truth; every schema change ships as a versioned migration file under `prisma/migrations/`, applied with `prisma migrate deploy` — never an ad-hoc `ALTER TABLE`.
-- **"CI/CD" here means Render's own build-and-deploy pipeline**, not a separate GitHub Actions workflow (there isn't one in this repo). `render.yaml` defines it: on every push to the connected branch, Render runs `npm ci --include=dev && npm run build && npm run db:migrate --workspace=server`, then restarts the service — so a schema migration ships automatically with the code that needs it, in the same deploy. This is continuous **deployment**; it is not gated by the test suite (`npm test` is not part of the Render build), so tests still need to be run and green locally/manually before pushing.
-- **Where AWS fits in:** neither this app nor Render is configured to call any AWS service directly. Both of the platforms it depends on happen to run their own infrastructure on AWS — Neon's connection hostnames are literally `*.aws.neon.tech`, and `render.yaml` pins the Render service to the `ohio` region specifically because that's the same AWS region (`us-east-2`) Neon's project lives in, keeping the database round-trip inside one data center instead of crossing the country on every query.
-- **One service, two processes.** `npm start` at the repo root runs both `next start` (bound to Render's public `$PORT`, passed explicitly via `-p`) and the Express API (bound to `127.0.0.1:4000`) via `concurrently --kill-others`; Next rewrites `/api/*` to the local Express process, so the browser only ever talks to one origin and the session cookie stays first-party.
-- **Express's internal port is `INTERNAL_API_PORT`, not `PORT`.** `PORT` is the name Render (and most PaaS platforms) inject automatically for whatever process should receive public traffic — reusing that same name for the Express side risked both processes reading the same value and racing for the same port if the shell-level override for Express's process ever failed to apply for any reason. `INTERNAL_API_PORT` is a name the platform never sets on its own, so Express's real bind port can't be confused with the one meant for Next.js. `server/src/config/env.ts` also defaults `HOST` to `127.0.0.1` in production whenever it isn't otherwise set, so this process can't end up bound to all interfaces by accident.
+`npm run db:seed --workspace=server` resets the database to the demo dataset at any time — it truncates every table first, so it's deterministic and safe to re-run.
 
-| Setting | Value |
-|---|---|
-| Build | `npm ci --include=dev && npm run build && npm run db:migrate --workspace=server` |
-| Start | `npm start` |
-| Health check | `/api/health` (routes through Next to the API, then pings Neon) |
-| Region | Ohio (`us-east-2`) — colocated with the Neon project |
-
-**Status:** live at https://nerdlogic.onrender.com. During a final review pass, the API (`/api/*`) was confirmed working end-to-end against real seeded data, but the frontend routes (`/`, `/staff`) were found to be unreachable — the response headers on those requests were Express's own (Helmet's CSP/`X-Content-Type-Options`/etc.), meaning Express, not Next.js, was answering all public traffic. The root cause and fix are above (`INTERNAL_API_PORT` + the explicit `-p` flag); **this needs a fresh deploy and a re-check of `/` and `/staff` before treating the live URL as fully verified.**
-
-## 10. Key decisions
+## 9. Key decisions
 
 | Decision | Reason |
 |---|---|
 | A status change *is* a tracking event, on one shared code path | The badge and the timeline are structurally incapable of disagreeing — there's only one place either of them is written |
 | Only the *newest* event moves current status/location | A staff member back-filling an older event (e.g. logging a collection time after the fact) can't accidentally rewind what the customer currently sees |
 | Public serializer is an allow-list, not a filter | A newly added column is private by default; leaking it requires a deliberate code change, not a forgotten one |
-| Validation errors return 422 with field-level `details[]`, not a flat 400 string | Matches what the frontend renders next to each input; documented as an intentional refinement over the brief's illustrative shape in `requirement/backend-integration-notes.md` |
-| JWT in an httpOnly cookie, cookie outlives the token | Lets the server distinguish "your session expired" from "you were never signed in," which the login screen surfaces differently |
-| Rate limiting is in-memory, not Redis-backed | Correct and sufficient for the single Render instance this runs on; would need a shared store if scaled to multiple instances |
+| Validation errors return 422 with field-level `details[]`, not a flat 400 string | Matches what the frontend renders next to each input |
+| Bearer token instead of a cookie | The frontend and API are on different domains in production — a cookie is unreliable there regardless of `SameSite`/`Secure` configuration |
+| Rate limiting is in-memory, not Redis-backed | Correct and sufficient for a single API instance; would need a shared store if scaled horizontally |
 
-## 11. Known limitations
-
-- **Not confirmed live yet** — see §9. Everything else in this README describes what the code does today; only the deployment step is outside the repository's control.
-- No automated CI gate — Render's build step migrates and deploys but does not run `npm test`; a red test suite would still deploy today.
-- JWTs can't be revoked before they expire (no session store or token version) — a compromised token is valid until its natural expiry.
-- CSRF protection relies on `SameSite=Lax` cookies + JSON-only request bodies, not a dedicated CSRF token.
-- Rate limiting is per-process/in-memory; horizontal scaling would need a shared store.
-- No audit trail of which staff member changed which shipment field (notes do record their author) — listed as an optional stretch idea in the brief, not a defect.
-
-## 12. Demo data
-
-Staff login: `staff@shiptrack.com` / `demo1234` (or whatever `SEED_STAFF_EMAIL`/`SEED_STAFF_PASSWORD` were set to).
-
-| Tracking number | Status | Demonstrates |
-|---|---|---|
-| `TRK-DEMO-001` | In transit | Several timeline events, live progress |
-| `TRK-DEMO-002` | Delivered | Final delivered event with date |
-| `TRK-DEMO-003` | Delayed | Updated ETA (previous one kept), explanatory event + internal note |
-| `TRK-DEMO-004` | Exception | Distinct issue explanation, internal note |
-| `TRK-DEMO-005` | Collected | Only two events — a "just started" shipment |
-| `TRK-DEMO-006` | Out for delivery | One stage before delivered |
-| `TRK-DEMO-007` | Created | Zero events — the empty-timeline state |
-
-Plus ~45 historical `TRK-HIST-*` deliveries (seeded deterministically) powering the delivery-performance analytics, and 5 fictional enquiries spanning all 5 categories and both `OPEN`/`RESOLVED` states.
