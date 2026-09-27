@@ -48,20 +48,30 @@ export default function Home() {
           Fast &middot; Safe &middot; Reliable
         </p>
         <h1 className="mt-4 text-5xl font-semibold tracking-tight text-text sm:text-6xl lg:text-7xl">
-          Where is your <span className="font-serif font-normal italic text-primary">parcel?</span>
+          Where is your{" "}
+          <span className="font-serif font-normal italic text-primary">
+            parcel?
+          </span>
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted sm:text-xl">
-          Enter your tracking number to see where your parcel is and what happens next.
+          Enter your tracking number to see where your parcel is and what
+          happens next.
         </p>
 
         <div className="mt-8 w-full max-w-2xl">
           <TrackingLanding />
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center divide-x divide-border text-sm text-muted">
+        <div className="mt-12 flex flex-wrap items-center justify-center divide-x divide-border text-sm text-muted">
           {FEATURES.map((feature) => (
-            <div key={feature.label} className="flex items-center gap-2 px-4 first:pl-0 last:pr-0">
-              <feature.icon className="size-4 text-primary" aria-hidden="true" />
+            <div
+              key={feature.label}
+              className="flex items-center gap-2 px-4 first:pl-0 last:pr-0"
+            >
+              <feature.icon
+                className="size-8 text-primary"
+                aria-hidden="true"
+              />
               {feature.label}
             </div>
           ))}

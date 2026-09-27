@@ -14,14 +14,14 @@
   /* One shared navy accent across customer and staff — `--color-primary` (customer-facing
      copy) and `--color-cta` (staff action buttons) are intentionally kept as separate token
      names for readability at call sites, but their values are always kept in sync. */
-  --color-primary: #172554;
+  --color-primary: #2744a3;
   --color-primary-soft: #eef2fb;
   --color-primary-hover: #24365f;
   --color-primary-active: #0f1a3d;
   --color-on-primary: #ffffff;
 
   /* ---- Color: staff CTA — same navy as --color-primary above, see note there. ---- */
-  --color-cta: #172554;
+  --color-cta: #2744a3;
   --color-cta-soft: #eef2fb;
 
   /* ---- Color: semantic (text/bg/border triplets, each pair AA-contrast checked) ---- */

@@ -46,8 +46,8 @@ export default function StaffLogin() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async() => {
+   
     if (isSubmitting) return; // prevent accidental double-submit while a request is in flight
 
     const errors: FieldErrors = {};
@@ -165,7 +165,7 @@ export default function StaffLogin() {
             </div>
           )}
 
-          <Button type="submit" variant="cta" size="lg" className="w-full" loading={isSubmitting} disabled={isSubmitting}>
+          <Button onClick={handleSubmit} variant="cta" size="lg" className="w-full" loading={isSubmitting} disabled={isSubmitting}>
             Sign in
           </Button>
 

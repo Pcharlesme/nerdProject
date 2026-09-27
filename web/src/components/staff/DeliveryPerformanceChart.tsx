@@ -55,7 +55,7 @@ export function DeliveryPerformanceChart({
                       ? "bg-border/70"
                       : isHighlight 
                         ? "bg-cta"
-                        : "bg-cta/20 border-blue-400"
+                        : "bg-blue-700/30 border-blue-400"
                   }`}
                   style={{ height: `${hasData ? day.onTimeRate : 2}%` }}
                   title={
