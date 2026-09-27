@@ -79,6 +79,20 @@ All responses are JSON. Success: `{ "data": … }` (list endpoints add `"meta": 
 
 Staff mutations return the updated shipment/enquiry, so the caller never needs a second round trip.
 
+### Staff account creation (Postman only)
+
+`POST /api/staff/accounts` — staff-only, same `requireStaff` gate as everything else above. Not called by the frontend (no UI for it); it exists so a second staff account can be created without re-running the seed script, which replaces the existing account rather than adding to it.
+
+```
+POST /api/staff/accounts
+Authorization: Bearer <token>          ← from POST /api/auth/login first
+Content-Type: application/json
+
+{ "email": "staff@example.com", "password": "password123", "name": "Staff User" }
+```
+
+`201` → `{ data: { id, email, name } }` — never a password hash, never a token for the new account. `409 CONFLICT` on a duplicate email; `422 VALIDATION_ERROR` on a password under 8 characters. Verified end-to-end: rejected without a token, created with one, duplicate/weak-password rejected, and the new account can log in on its own.
+
 ## 4. Authentication & security
 
 - **Passwords:** bcrypt, 12 rounds, never returned by any endpoint. A login against an unknown email still runs a bcrypt compare against a fixed placeholder hash, so a wrong-email and a wrong-password response take the same time — one generic `INVALID_CREDENTIALS` either way.

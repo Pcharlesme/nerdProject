@@ -7,6 +7,7 @@ import { apiLimiter } from "./middleware/rateLimiters";
 import { requireStaff } from "./middleware/requireStaff";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { authRouter } from "./modules/auth/auth.routes";
+import { registerStaffRouter } from "./modules/auth/registerStaff.routes";
 import { publicShipmentRouter, staffShipmentRouter } from "./modules/shipments/shipment.routes";
 import { publicEnquiryRouter, staffEnquiryRouter } from "./modules/enquiries/enquiry.routes";
 import { dashboardRouter } from "./modules/dashboard/dashboard.routes";
@@ -39,6 +40,7 @@ export function createApp() {
   staff.use("/analytics", analyticsRouter);
   staff.use("/shipments", staffShipmentRouter);
   staff.use("/enquiries", staffEnquiryRouter);
+  staff.use("/accounts", registerStaffRouter);
   app.use("/api/staff", staff);
 
   app.use(notFoundHandler);
