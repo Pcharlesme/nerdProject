@@ -74,8 +74,8 @@ All responses are JSON. Success: `{ "data": … }` (list endpoints add `"meta": 
 | GET | `/api/health` | – | Pings the database; used as Render's health check |
 | GET | `/api/shipments/:trackingNumber` | – | Public view — no sender/receiver/internal notes/database id |
 | POST | `/api/enquiries` | – | `{ trackingNumber, category, message, contactEmail? }`; rate limited |
-| POST | `/api/auth/login` | – | `{ email, password }` → sets the `ns_session` cookie; failures are rate limited |
-| POST | `/api/auth/logout` | – | Clears the cookie, 204 |
+| POST | `/api/auth/login` | – | `{ email, password }` → `{ accessToken, staff }`; failures are rate limited |
+| POST | `/api/auth/logout` | – | Stateless — 204, no server-side session to clear |
 | GET | `/api/auth/me` | staff | Current staff member |
 | GET | `/api/staff/dashboard` | staff | Shipment counts by status, 5 most recent, open-enquiry count/preview |
 | GET | `/api/staff/analytics/delivery-performance?from=&to=` | staff | Daily on-time rate (delivered ≤ ETA); defaults to the last 14 days, max 92 |
@@ -94,7 +94,7 @@ Staff mutations return the updated shipment/enquiry so the caller never needs a 
 ## 5. Authentication & security
 
 - **Passwords:** bcrypt, 12 rounds, never returned by any endpoint. A login against an unknown email still runs a bcrypt compare against a fixed placeholder hash, so a wrong-email and a wrong-password response take the same time — one generic `INVALID_CREDENTIALS` either way.
-- **Sessions:** a JWT (`HS256`) in an `httpOnly`, `SameSite=Lax`, `Secure`-in-production cookie. The cookie's own expiry deliberately outlives the token's, so an expired token is reported as `SESSION_EXPIRED` (session existed, timed out) rather than indistinguishable from "never logged in."
+- **Sessions:** a stateless JWT (`HS256`) returned as `accessToken` in the login response body and sent back as `Authorization: Bearer <token>` on every subsequent request — no cookie, no server-side session store. An expired token is reported as `SESSION_EXPIRED` (distinct from `UNAUTHENTICATED`, which covers a missing/forged/malformed token) so the frontend can tell "your session ran out" from "never logged in."
 - **The one rule that matters most:** every `/api/staff/*` route is mounted behind `requireStaff` in `app.ts`, at the router level — not inside individual controllers, where it would be easy to forget on a new route. A hidden frontend page is not a security boundary; this is.
 - **Public responses are allow-listed**, not filtered. `toPublicShipment()` only includes the fields explicitly listed in it — a new column on `Shipment` is invisible to the public API until someone deliberately adds it to the serializer, which is a safer default than trying to remember to strip new sensitive fields later.
 - **Secrets:** `server/.env` is gitignored; `.env.example` ships placeholders only, with an inline command (`openssl rand -base64 48`) for generating a real `JWT_SECRET`.
@@ -120,7 +120,7 @@ Vitest + Supertest against a real Postgres (`embedded-postgres`, matching Neon's
 | File | Covers |
 |---|---|
 | `public-tracking.test.ts` | Chronological ordering, no leakage of contacts/notes/ids, not-found, malformed input |
-| `auth.test.ts` | Hashing, generic invalid-credential error, httpOnly cookie, every staff route 401s without a session, expired vs. forged tokens, logout |
+| `auth.test.ts` | Hashing, generic invalid-credential error, bearer access token issued on login, every staff route 401s without a token, expired vs. forged tokens, logout |
 | `shipments.test.ts` | Create (incl. duplicate → 409), edit (history untouched, ETA history kept), status/events (back-filled events don't rewind status, future dates rejected, invalid status rejected), internal notes, list/search/filter/sort/paginate |
 | `enquiries.test.ts` | Submit → visible to staff → resolve, unknown tracking number rejected, field validation |
 | `analytics.test.ts` | On-time-rate calculation, date-range validation, staff-only |

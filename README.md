@@ -19,7 +19,7 @@ Staff    → Log in → Dashboard → Find/manage shipments → Update status/ev
 
 > **Before submitting:** a deployment-config bug (Express answering all public traffic instead of Next.js) was found and fixed in this review pass — see [`server/README.md` §9](server/README.md#9-deployment-render--neon--why-aws-shows-up). Push this fix and confirm `/` and `/staff` load correctly on the live URL (not just `/api/*`) before treating the link above as verified.
 
-The customer tracking page requires no login. The staff area is behind the demo credentials above — sessions are httpOnly cookies, so opening the live URL in a private/incognito window and logging in as above reproduces exactly what a reviewer would see.
+The customer tracking page requires no login. The staff area is behind the demo credentials above — sessions are a bearer access token held in the browser's memory/`sessionStorage` (never a cookie), so opening the live URL in a private/incognito window and logging in as above reproduces exactly what a reviewer would see.
 
 ### Demo tracking numbers
 
@@ -50,7 +50,7 @@ The seed also generates ~48 additional randomised historical shipments (`TRK-HIS
 | Styling | Tailwind CSS v4 | Utility-first with a small CSS-variable design-token layer (`web/src/styles/tokens.css`) — one shared colour/spacing system for both the calm customer UI and the denser staff UI, no separate component-library dependency. |
 | Backend | Express 5 + TypeScript | A small, explicit REST API is easier to reason about and test than a bigger framework for this scope — resource-oriented routes, Joi validation middleware, and a thin service layer per module (`server/src/modules/*`). |
 | Database | PostgreSQL (hosted on [Neon](https://neon.tech)) via Prisma 6 | A genuinely persistent relational database (not SQLite-in-a-container that resets on redeploy), with Prisma's migrations and typed client giving compile-time safety on every query. Neon's free tier is enough for this scope and needs no server to manage. |
-| Auth | Signed JWT in an httpOnly cookie | Same-origin cookie auth avoids ever putting a token in browser-accessible storage; `requireStaff` middleware verifies it server-side on every staff route, so a hidden frontend route is never mistaken for real protection. |
+| Auth | Signed JWT as a bearer access token | Held in memory (mirrored to `sessionStorage`, never `localStorage`) and sent as `Authorization: Bearer <token>` on every request — works across origins, unlike a cookie, which mattered once the frontend and API ended up on different domains; `requireStaff` middleware verifies it server-side on every staff route, so a hidden frontend route is never mistaken for real protection. |
 | Testing | Vitest everywhere; Supertest (server) + React Testing Library (web) | One test runner across both workspaces; Supertest drives the real Express app against a real (ephemeral) Postgres instance rather than mocking the database, and RTL renders real components against a mocked API boundary rather than testing implementation details. |
 
 ## Architecture
@@ -59,7 +59,7 @@ The seed also generates ~48 additional randomised historical shipments (`TRK-HIS
 Browser
   │
   ├─ GET /                      → Next.js server component (static customer landing page)
-  ├─ GET /staff/*                → Next.js client components, behind session cookie
+  ├─ GET /staff/*                → Next.js client components, behind a bearer-token session
   └─ fetch /api/*                → same-origin, proxied by Next's rewrite (web/next.config.ts)
                                         │
                                         ▼
@@ -69,7 +69,7 @@ Browser
                                  PostgreSQL (Neon), via Prisma
 ```
 
-One Render web service (see [`render.yaml`](render.yaml)) runs both processes side by side: Next.js listens on the public `$PORT` Render assigns, and the Express API listens on a fixed loopback-only port. Next's own rewrite (`/api/:path*`) proxies browser requests to the API process, so the browser only ever talks to one origin — which is also why the staff session cookie works without any CORS configuration in production. Full detail: [`server/README.md` §9](server/README.md#9-deployment-render--neon--why-aws-shows-up).
+One Render web service (see [`render.yaml`](render.yaml)) runs both processes side by side: Next.js listens on the public `$PORT` Render assigns, and the Express API listens on a fixed loopback-only port. Next's own rewrite (`/api/:path*`) proxies browser requests to the API process, so the browser only ever talks to one origin. The bearer-token auth doesn't depend on this — it works the same whether the frontend and API share an origin or are deployed separately, since the token travels in an `Authorization` header rather than a cookie. Full detail: [`server/README.md` §9](server/README.md#9-deployment-render--neon--why-aws-shows-up).
 
 ### Repository structure
 
@@ -107,8 +107,8 @@ Open http://localhost:3000 for the customer page, or http://localhost:3000/staff
 |---|---|---|
 | `DATABASE_URL` | Yes | Postgres connection string used at runtime (pooled, if your provider distinguishes pooled/direct). |
 | `DIRECT_URL` | Yes | Direct (non-pooled) connection string, used only by `prisma migrate`. |
-| `JWT_SECRET` | Yes | Signs the staff session cookie. Must be ≥ 32 characters — generate one with `openssl rand -base64 48`. |
-| `NODE_ENV` | No (default `development`) | `production` tightens cookie flags and disables verbose error detail. |
+| `JWT_SECRET` | Yes | Signs the staff bearer access token. Must be ≥ 32 characters — generate one with `openssl rand -base64 48`. |
+| `NODE_ENV` | No (default `development`) | `production` disables verbose error detail. |
 | `PORT` | No (default `4000`) | API port. |
 | `CORS_ORIGIN` | No (default `http://localhost:3000`) | Comma-separated list of origins allowed to call the API directly (relevant if the frontend is ever deployed separately from the API — see `web/src/api/client.ts`). |
 | `SEED_STAFF_EMAIL` / `SEED_STAFF_PASSWORD` | No (default the demo credentials above) | The account `npm run db:seed` creates. |
@@ -129,9 +129,9 @@ Schema and migrations live in `server/prisma/`; the seed script is `server/src/s
 ## Testing
 
 ```bash
-npm test              # runs both workspaces' full suites (72 tests total)
-npm run test:server   # 45 tests — Supertest against a real, ephemeral Postgres (via embedded-postgres)
-npm run test:web      # 27 tests — Vitest + React Testing Library, API layer mocked at the boundary
+npm test              # runs both workspaces' full suites (81 tests total)
+npm run test:server   # 47 tests — Supertest against a real, ephemeral Postgres (via embedded-postgres)
+npm run test:web      # 34 tests — Vitest + React Testing Library, API layer mocked at the boundary
 ```
 
 What's covered (not exhaustive — see the test files themselves for the full list): public tracking lookup (found/not-found/validation), staff auth (wrong password, missing/expired session, every `/api/staff/*` route rejecting an unauthenticated request), shipment creation/validation/duplicate-tracking-number rejection, status changes and event ordering, enquiry creation and resolution, rate limiting, and the frontend's TanStack Query hooks (loading → success/error, cache writes, mutation states) plus full component-level flows (`EnquiryPanel`, `UpdateStatusPanel`, `TrackingSearch`, `StaffAuthProvider`).
@@ -160,14 +160,14 @@ Staff          GET   /api/staff/dashboard                   Status counts + rece
                GET   /api/staff/analytics/delivery-performance
 ```
 
-Every `/api/staff/*` route requires the session cookie and is rejected server-side (401) if it's missing, invalid or expired — enforced by middleware, not by hiding the frontend route. Every mutating endpoint validates its body server-side with Joi, independent of the frontend's own validation. All error responses are a consistent `{ error: { code, message, details? } }` shape, and unexpected failures return a generic 500 without leaking stack traces.
+Every `/api/staff/*` route requires a valid bearer access token and is rejected server-side (401) if it's missing, invalid or expired — enforced by middleware, not by hiding the frontend route. Every mutating endpoint validates its body server-side with Joi, independent of the frontend's own validation. All error responses are a consistent `{ error: { code, message, details? } }` shape, and unexpected failures return a generic 500 without leaking stack traces.
 
 ## Assumptions and product decisions
 
 - **A status change is a tracking event, not a separate concept.** Changing a shipment's status writes a timeline event with that status attached, so the badge shown to staff and the timeline shown to the customer are structurally incapable of disagreeing — there's one source of truth (`server/src/modules/shipments/shipment.service.ts`), not two fields kept in sync by hand.
 - **Adding an event only moves `status`/`currentLocation`/`updatedAt` if it's the newest event on the timeline.** Back-filling an older, historical event never rewinds what the customer currently sees, and (as of this review pass) never falsely bumps the shipment to the top of a "recently updated" sort either.
 - **The public API is an allow-list, not a filtered version of the staff shape.** `toPublicShipment` only ever includes the fields a customer is allowed to see — sender/receiver contact details and internal notes are never serialized onto that response at all, so there's no risk of a future field addition accidentally leaking.
-- **One staff role, session-cookie auth, no refresh-token complexity.** The brief explicitly scopes out complex roles; a signed JWT in an httpOnly cookie with a fixed expiry is enough to demonstrate real, server-enforced authentication without over-building.
+- **One staff role, bearer-token auth, no refresh-token complexity.** The brief explicitly scopes out complex roles; a signed JWT with a fixed expiry, returned once at login and sent back as `Authorization: Bearer <token>`, is enough to demonstrate real, server-enforced authentication without over-building.
 - **Tracking numbers can be supplied or auto-generated.** Staff can type a custom one when creating a shipment or leave it blank; the server generates a unique one if omitted, and rejects a duplicate with a specific 409 either way.
 - **The delivery-performance chart fetches one default window** (the server's own last-14-days default) and the calendar picker only lets you select among dates that window actually returned — it doesn't re-fetch a different range as you navigate the calendar. A real "any month" picker would need the query to follow the calendar; not required to make the chart real rather than mocked.
 - **Dashboard/shipment lists are server-paginated**, not held entirely in browser memory — this matters once the seed data (~55 shipments) is larger than a trivial demo dataset would be.

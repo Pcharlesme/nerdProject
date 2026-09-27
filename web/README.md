@@ -98,7 +98,7 @@ Hook            (hooks/useXxx.ts)     — TanStack Query: loading/error/caching/
  ↓
 API function    (api/shipments.ts, ...) — Axios call, normalizes failures into ApiError
  ↓
-apiClient       (api/client.ts)       — axios instance, withCredentials: true, baseURL "/api"
+apiClient       (api/client.ts)       — axios instance, attaches Authorization: Bearer <token>, baseURL "/api"
  ↓  same-origin HTTP
 Next.js rewrite (next.config.ts)      — proxies /api/:path* to the Express API
  ↓
@@ -107,7 +107,7 @@ Backend         (server/)
 
 The frontend runs entirely on the real backend — there is no runtime mock data left. Every screen's read/write goes through a TanStack Query hook (customer: `useTrackingLookup`, `useSubmitEnquiry`; staff: `useSession`/`useLogin`/`useLogout`, `useStaffShipments`, `useStaffShipmentDetail`, `useCreateShipment`, `useUpdateShipment`, `useChangeShipmentStatus`, `useAddTrackingEvent`, `useAddInternalNote`, `useStaffEnquiries`, `useUpdateEnquiryStatus`, `useDashboard`, `useDeliveryPerformance`), which owns that operation's caching, invalidation and error normalization.
 
-The staff session is an httpOnly cookie set by the backend (`ns_session`) — the frontend never stores a token itself, just sends the cookie automatically via `withCredentials: true`.
+The staff session is a bearer access token: `POST /auth/login` returns it in the response body, `api/tokenStore.ts` holds it in memory (mirrored to `sessionStorage` so a same-tab refresh doesn't force a re-login — never `localStorage`), and an axios request interceptor in `api/client.ts` attaches `Authorization: Bearer <token>` to every outgoing request. A response interceptor centrally handles a 401 on an authenticated request by clearing the token and redirecting to `/staff`; `GET /auth/me` stays the frontend's source of truth for "is there a valid session right now."
 
 **Environment variables (`web/.env.local`, all optional locally):**
 
@@ -168,7 +168,7 @@ npm run test:watch  # watch mode while developing
 | Decision | Reason |
 |---|---|
 | Architecture | Components never call Axios/fetch directly — every operation is a TanStack Query hook in `hooks/`, backed by a typed function in `api/`, so the data layer, cache and error handling live in one predictable place per operation |
-| Auth | The real staff session is an httpOnly cookie the backend controls; `StaffAuthProvider` wraps it behind the exact interface the old mock exposed, so nothing downstream (`RouteGuard`, `StaffSidebar`, the login page) needed to change |
+| Auth | The real staff session is a bearer access token (`api/tokenStore.ts`, memory + `sessionStorage`); `StaffAuthProvider` wraps it behind the exact interface the old mock exposed, so nothing downstream (`RouteGuard`, `StaffSidebar`, the login page) needed to change |
 | UI approach | Two distinct visual registers (calm/customer vs. dense/operations) sharing one design-token system, so they stay consistent without looking identical |
 | Status system | Every shipment status has its own colour *and* icon *and* label — never colour alone |
 | Responsive strategy | Desktop tables become mobile cards; the staff sidebar collapses into a top bar + menu below `lg` |

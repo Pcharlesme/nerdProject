@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
-import { useUpdateShipment } from "@/hooks/useUpdateShipment";
+import { useUpdateShipment } from "@/hooks/useShipments";
 import { ApiError } from "@/api";
 import type { EditShipmentInput, StaffShipment } from "@/types";
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { useSubmitEnquiry } from "../useSubmitEnquiry";
+import { useSubmitEnquiry } from "../useEnquiries";
 import { enquiriesApi, ApiError } from "@/api";
 import { createQueryWrapper } from "@/test/queryWrapper";
 

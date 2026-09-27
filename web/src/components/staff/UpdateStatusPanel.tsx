@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { STATUS_AUTO_MESSAGE, STATUS_OPTIONS } from "@/lib/shipmentStatus";
-import { useChangeShipmentStatus } from "@/hooks/useChangeShipmentStatus";
+import { useChangeShipmentStatus } from "@/hooks/useShipments";
 import { ApiError } from "@/api";
 import type { StaffShipment, ShipmentStatus } from "@/types";
 

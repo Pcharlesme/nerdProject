@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import { ChevronDown, Mail, MessageCircleQuestion, Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
-import { useSubmitEnquiry } from "@/hooks/useSubmitEnquiry";
+import { useSubmitEnquiry } from "@/hooks/useEnquiries";
 import { ENQUIRY_CATEGORIES } from "@/types";
 import type { EnquiryCategory } from "@/types";
 

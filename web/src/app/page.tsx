@@ -11,10 +11,6 @@ const FEATURES = [
   { icon: Package, label: "Delivered with care" },
 ];
 
-// A fully static, server-rendered landing page — no client JS is needed to paint the
-// hero, so there is nothing here that can hydrate late or leave the page half-rendered.
-// `GridBackground` and `TrackingLanding` are the only client components: a decorative,
-// aria-hidden cursor effect and the search box + its results, respectively.
 export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-linear-to-br from-white via-white to-primary-soft/70">
@@ -62,7 +58,7 @@ export default function Home() {
           <TrackingLanding />
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-center divide-x divide-border text-sm text-muted">
+        <div className="hidden md:flex mt-12 flex-wrap items-center justify-center divide-x divide-border text-sm text-muted">
           {FEATURES.map((feature) => (
             <div
               key={feature.label}

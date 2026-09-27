@@ -4,12 +4,13 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, ChevronDown, Loader2, Package, Plus, Search, X } from "lucide-react";
-import { useStaffShipments } from "@/hooks/useStaffShipments";
+ 
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Pagination } from "@/components/ui/Pagination";
 import { STATUS_OPTIONS } from "@/lib/shipmentStatus";
 import { formatDateShort } from "@/lib/formatDate";
 import type { ShipmentStatus, ShipmentSummary } from "@/types";
+import { useStaffShipments } from "@/hooks/useShipments";
 
 type StatusFilter = ShipmentStatus | "ALL";
 

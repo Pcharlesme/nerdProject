@@ -5,14 +5,14 @@ import { STAFF_CREDENTIALS, app, prisma, request, seed, signedInAgent } from "./
 describe("staff authentication", () => {
   beforeEach(seed);
 
-  it("signs in with valid credentials and sets an httpOnly session cookie", async () => {
+  it("signs in with valid credentials and returns a bearer access token", async () => {
     const res = await request(app).post("/api/auth/login").send(STAFF_CREDENTIALS).expect(200);
 
-    expect(res.body.data).toMatchObject({ email: STAFF_CREDENTIALS.email });
-    expect(res.body.data).not.toHaveProperty("passwordHash");
-    const cookie = res.headers["set-cookie"]?.[0] ?? "";
-    expect(cookie).toMatch(/^ns_session=/);
-    expect(cookie).toMatch(/HttpOnly/i);
+    expect(res.body.data.staff).toMatchObject({ email: STAFF_CREDENTIALS.email });
+    expect(res.body.data.staff).not.toHaveProperty("passwordHash");
+    expect(typeof res.body.data.accessToken).toBe("string");
+    expect(res.body.data.accessToken.length).toBeGreaterThan(0);
+    expect(res.headers["set-cookie"]).toBeUndefined();
   });
 
   it("stores the password hashed, never in plain text", async () => {
@@ -53,32 +53,43 @@ describe("staff authentication", () => {
     }
   });
 
-  it("reports an expired session distinctly and clears the cookie", async () => {
+  it("rejects a malformed Authorization header", async () => {
+    const res = await request(app).get("/api/staff/shipments").set("Authorization", "Bearer").expect(401);
+    expect(res.body.error.code).toBe("UNAUTHENTICATED");
+  });
+
+  it("reports an expired token distinctly", async () => {
     const user = await prisma.staffUser.findUniqueOrThrow({ where: { email: STAFF_CREDENTIALS.email } });
     const expired = jwt.sign(
       { sub: user.id, email: user.email, name: user.name, exp: Math.floor(Date.now() / 1000) - 60 },
       process.env.JWT_SECRET!,
     );
 
-    const res = await request(app).get("/api/staff/shipments").set("Cookie", `ns_session=${expired}`).expect(401);
+    const res = await request(app)
+      .get("/api/staff/shipments")
+      .set("Authorization", `Bearer ${expired}`)
+      .expect(401);
 
     expect(res.body.error.code).toBe("SESSION_EXPIRED");
-    expect(res.headers["set-cookie"]?.[0]).toMatch(/ns_session=;/);
   });
 
   it("rejects a token signed with a different secret", async () => {
     const forged = jwt.sign({ sub: "x", email: "x@example.test", name: "X" }, "some-other-secret-that-is-long-enough");
-    const res = await request(app).get("/api/staff/shipments").set("Cookie", `ns_session=${forged}`).expect(401);
+    const res = await request(app).get("/api/staff/shipments").set("Authorization", `Bearer ${forged}`).expect(401);
     expect(res.body.error.code).toBe("UNAUTHENTICATED");
   });
 
-  it("returns the current staff member and logs out cleanly", async () => {
+  it("returns the current staff member for a valid bearer token", async () => {
     const agent = await signedInAgent();
 
     const me = await agent.get("/api/auth/me").expect(200);
     expect(me.body.data.email).toBe(STAFF_CREDENTIALS.email);
+  });
 
-    await agent.post("/api/auth/logout").expect(204);
-    await agent.get("/api/auth/me").expect(401);
+  it("logs out with a 204 and no body", async () => {
+    const agent = await signedInAgent();
+
+    const res = await agent.post("/api/auth/logout").expect(204);
+    expect(res.body).toEqual({});
   });
 });

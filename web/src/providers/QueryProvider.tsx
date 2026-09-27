@@ -6,8 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export function QueryProvider({ children }: { children: ReactNode }) {
-  // Created once per browser session (useState's lazy initializer), not on every
-  // render — a fresh QueryClient per render would drop the cache on every re-render.
   const [queryClient] = useState(
     () =>
       new QueryClient({

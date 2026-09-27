@@ -2,19 +2,20 @@ import type { Request, Response } from "express";
 import { AppError } from "../../lib/AppError";
 import { validatedBody } from "../../lib/validated";
 import { authenticateStaff, getStaffById } from "./auth.service";
-import { SESSION_COOKIE, sessionCookieOptions, signSessionToken } from "./auth.token";
+import { signAccessToken } from "./auth.token";
 import type { LoginBody } from "./auth.schemas";
 
 export async function login(req: Request, res: Response) {
   const { email, password } = validatedBody<LoginBody>(req);
   const staff = await authenticateStaff(email, password);
 
-  res.cookie(SESSION_COOKIE, signSessionToken(staff), sessionCookieOptions);
-  res.json({ data: staff });
+  res.json({ data: { accessToken: signAccessToken(staff), staff } });
 }
 
+// Stateless JWT — there is no server-side session to invalidate. This endpoint exists so
+// the frontend has one clear place to call before forgetting its own copy of the token
+// (and so a future move to a revocable/blacklisted token model has somewhere to live).
 export function logout(_req: Request, res: Response) {
-  res.clearCookie(SESSION_COOKIE, sessionCookieOptions);
   res.status(204).end();
 }
 

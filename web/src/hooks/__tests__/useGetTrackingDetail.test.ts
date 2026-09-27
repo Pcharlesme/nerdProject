@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { useGetTrackingDetail } from "../useGetTrackingDetail";
+import { useGetTrackingDetail } from "../useShipments";
 import { shipmentsApi, ApiError } from "@/api";
 import { createQueryWrapper } from "@/test/queryWrapper";
 import { makePublicShipment } from "@/test/fixtures";

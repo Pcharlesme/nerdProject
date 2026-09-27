@@ -3,9 +3,7 @@
 import { createContext, useCallback, useContext, useMemo } from "react";
 import type { ReactNode } from "react";
 import { ApiError } from "@/api";
-import { useSession } from "@/hooks/useSession";
-import { useLogin } from "@/hooks/useLogin";
-import { useLogout } from "@/hooks/useLogout";
+import { useLogin, useLogout, useSession } from "@/hooks/useAuth";
 
 export type LoginResult = { success: true } | { success: false; error: string };
 
@@ -22,8 +20,7 @@ interface StaffAuthContextValue {
 
 const StaffAuthContext = createContext<StaffAuthContextValue | null>(null);
 
-/** Wraps the real `/api/auth/*` session cookie in the same shape the app already
- * consumed when this was a sessionStorage mock — no consumer had to change. */
+
 export function StaffAuthProvider({ children }: { children: ReactNode }) {
   const session = useSession();
   const loginMutation = useLogin();

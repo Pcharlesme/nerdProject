@@ -71,6 +71,14 @@ describe("StaffAuthProvider", () => {
     const { result } = renderHook(() => useStaffAuth(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.status).toBe("ready"));
 
+    // After a real login, the re-fetched `/auth/me` succeeds — reflect that here since
+    // `getSession` is mocked independently of `login`.
+    vi.mocked(authApi.getSession).mockResolvedValue({
+      id: "staff-1",
+      email: "staff@shiptrack.com",
+      name: "John Charles",
+    });
+
     let outcome!: Awaited<ReturnType<typeof result.current.login>>;
     await act(async () => {
       outcome = await result.current.login("staff@shiptrack.com", "demo1234");
@@ -79,6 +87,8 @@ describe("StaffAuthProvider", () => {
     expect(outcome).toEqual({ success: true });
     await waitFor(() => expect(result.current.email).toBe("staff@shiptrack.com"));
     expect(result.current.name).toBe("John Charles");
+
+    vi.mocked(authApi.getSession).mockRejectedValue(new ApiError("Authentication is required.", "UNAUTHENTICATED", 401));
 
     act(() => {
       result.current.logout();

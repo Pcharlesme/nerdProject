@@ -7,7 +7,7 @@ import Link from "next/link";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { SectionLabel } from "@/components/ui/InfoField";
-import { useCreateShipment } from "@/hooks/useCreateShipment";
+import { useCreateShipment } from "@/hooks/useShipments";
 import { ApiError } from "@/api";
 import type { CreateShipmentInput } from "@/types";
 

@@ -12,9 +12,18 @@ export async function seed() {
 }
 
 export async function signedInAgent() {
-  const agent = request.agent(app);
-  await agent.post("/api/auth/login").send(STAFF_CREDENTIALS).expect(200);
-  return agent;
+  const res = await request(app).post("/api/auth/login").send(STAFF_CREDENTIALS).expect(200);
+  const token = res.body.data.accessToken;
+  const auth = (req: request.Test) => req.set("Authorization", `Bearer ${token}`);
+
+  return {
+    token,
+    get: (url: string) => auth(request(app).get(url)),
+    post: (url: string) => auth(request(app).post(url)),
+    patch: (url: string) => auth(request(app).patch(url)),
+    put: (url: string) => auth(request(app).put(url)),
+    delete: (url: string) => auth(request(app).delete(url)),
+  };
 }
 
 export function validShipmentPayload(overrides: Record<string, unknown> = {}) {

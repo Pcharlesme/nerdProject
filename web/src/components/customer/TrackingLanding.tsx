@@ -3,7 +3,7 @@
 import { TrackingSearch } from "@/components/customer/TrackingSearch";
 import { TrackingResult, TrackingResultSkeleton } from "@/components/customer/TrackingResult";
 import { EnquiryPanel } from "@/components/customer/EnquiryPanel";
-import { useTrackingLookup } from "@/hooks/useTrackingLookup";
+import { useTrackingLookup } from "@/hooks/useShipments";
 
 /**
  * The one interactive "island" on an otherwise fully static, server-rendered landing

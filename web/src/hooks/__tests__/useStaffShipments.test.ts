@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { useStaffShipments } from "../useStaffShipments";
+import { useStaffShipments } from "../useShipments";
 import { shipmentsApi } from "@/api";
+import { setAccessToken } from "@/api/tokenStore";
 import { createQueryWrapper } from "@/test/queryWrapper";
 import { makeShipmentSummary } from "@/test/fixtures";
 
@@ -13,6 +14,7 @@ vi.mock("@/api", async (importOriginal) => {
 describe("useStaffShipments", () => {
   beforeEach(() => {
     vi.mocked(shipmentsApi.listStaffShipments).mockReset();
+    setAccessToken("test-token");
   });
 
   it("returns the page of shipments and pagination meta", async () => {

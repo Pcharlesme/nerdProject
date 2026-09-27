@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import { StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
-import { useAddInternalNote } from "@/hooks/useAddInternalNote";
+import { useAddInternalNote } from "@/hooks/useShipments";
 import { ApiError } from "@/api";
 import type { StaffShipment } from "@/types";
 
@@ -23,7 +23,7 @@ export function AddInternalNotePanel({ shipment }: { shipment: StaffShipment }) 
     }
 
     setValidationError(false);
-    // The author is derived from the session cookie server-side — never sent in the body.
+    // The author is derived from the bearer token server-side — never sent in the body.
     addInternalNote.mutate({ message: message.trim() }, { onSuccess: () => setMessage("") });
   };
 

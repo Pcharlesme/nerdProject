@@ -2,7 +2,14 @@
 // every backend response comes wrapped in. Domain models (Shipment, Enquiry, ...)
 // live in `@/types` and are shared between this layer and the UI.
 
-import type { CreateShipmentInput, EditShipmentInput, EnquiryCategory, EnquiryStatus, ShipmentStatus } from "@/types";
+import type {
+  CreateShipmentInput,
+  EditShipmentInput,
+  EnquiryCategory,
+  EnquiryStatus,
+  ShipmentStatus,
+  StaffUser,
+} from "@/types";
 
 /** Every successful response body: `{ data: T }`, plus `meta` on list endpoints. */
 export interface ApiEnvelope<T> {
@@ -40,6 +47,11 @@ export interface ApiErrorBody {
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  staff: StaffUser;
 }
 
 // ==== Shipments ====

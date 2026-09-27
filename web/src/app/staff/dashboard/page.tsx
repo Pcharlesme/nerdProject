@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowUpDown, Check, Copy, Download, Package, Plus, Search } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
-import { useStaffShipments } from "@/hooks/useStaffShipments";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Pagination } from "@/components/ui/Pagination";
 import { DeliveryPerformancePanel } from "@/components/staff/DeliveryPerformancePanel";
@@ -14,6 +13,7 @@ import { STATUS_LABEL } from "@/lib/shipmentStatus";
 import { formatDateShort, formatDateTime } from "@/lib/formatDate";
 import { downloadCsv } from "@/lib/exportCsv";
 import type { ShipmentSummary, ShipmentStatus } from "@/types";
+import { useStaffShipments } from "@/hooks/useShipments";
 
 type OrderFilter = "ALL" | ShipmentStatus;
 

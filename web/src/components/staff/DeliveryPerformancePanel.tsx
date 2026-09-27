@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Calendar, Maximize2, X } from "lucide-react";
-import { useDeliveryPerformance } from "@/hooks/useDeliveryPerformance";
 import { DeliveryPerformanceChart } from "./DeliveryPerformanceChart";
 import { PerformanceCalendar } from "./PerformanceCalendar";
+import { useDeliveryPerformance } from "@/hooks/useDashboard";
 
 export function DeliveryPerformancePanel({ title = "Delivery performance" }: { title?: string }) {
   const { data, isLoading, isError } = useDeliveryPerformance();

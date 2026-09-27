@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { useChangeShipmentStatus } from "../useChangeShipmentStatus";
+import { useChangeShipmentStatus } from "../useShipments";
 import { shipmentsApi, queryKeys } from "@/api";
 import { createQueryWrapper } from "@/test/queryWrapper";
 import { makeStaffShipment } from "@/test/fixtures";

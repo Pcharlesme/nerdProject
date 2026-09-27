@@ -14,8 +14,7 @@ import {
   PackageMinus,
   RotateCcw,
 } from "lucide-react";
-import { useStaffEnquiries } from "@/hooks/useStaffEnquiries";
-import { useUpdateEnquiryStatus } from "@/hooks/useUpdateEnquiryStatus";
+import { useStaffEnquiries, useUpdateEnquiryStatus } from "@/hooks/useEnquiries";
 import { useDashboard } from "@/hooks/useDashboard";
 import { Pagination } from "@/components/ui/Pagination";
 import { formatDateTime } from "@/lib/formatDate";

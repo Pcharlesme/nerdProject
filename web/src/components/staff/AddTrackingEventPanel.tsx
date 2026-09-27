@@ -6,7 +6,7 @@ import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CollapsiblePanel } from "@/components/ui/CollapsiblePanel";
 import { STATUS_OPTIONS } from "@/lib/shipmentStatus";
-import { useAddTrackingEvent } from "@/hooks/useAddTrackingEvent";
+import { useAddTrackingEvent } from "@/hooks/useShipments";
 import { ApiError } from "@/api";
 import type { StaffShipment, ShipmentStatus } from "@/types";
 

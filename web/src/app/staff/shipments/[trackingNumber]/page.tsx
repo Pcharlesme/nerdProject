@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AlertCircle, ArrowLeft, Boxes, CalendarClock, Hash, MapPin, PackageX, Truck } from "lucide-react";
 import { ApiError } from "@/api";
-import { useStaffShipmentDetail } from "@/hooks/useStaffShipmentDetail";
+import { useStaffShipmentDetail } from "@/hooks/useShipments";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { InfoField, SectionLabel } from "@/components/ui/InfoField";
 import { StatusStepper } from "@/components/shipments/StatusStepper";
