@@ -158,6 +158,8 @@ npm run test:watch  # watch mode
 
 ## 10. Trade-offs
 
+Follows from the stack and auth choices in the root README's [Layer / Choice / Why](../README.md#architecture) table, and mirrors the product-level calls in its [Assumptions and product decisions](../README.md#assumptions-and-product-decisions).
+
 | Trade-off | Why |
 |---|---|
 | Status change *is* a tracking event, not a separate concept | Keeps the badge and the timeline provably impossible to disagree, at the cost of a slightly less "obvious" data model |
@@ -169,7 +171,6 @@ npm run test:watch  # watch mode
 - A dedicated analytics page beyond the dashboard's glance.
 - A real month calendar on the delivery-performance chart (dates without data are visibly disabled, not hidden).
 - CSV export of the filtered shipment list from the dashboard.
-- Live badges (open-enquiry count, exceptions-needing-attention) that update as data changes.
-- In App notification for Customer Enquries
-- Role Based access control for staff
-- Staff Audit
+- Live badges (open-enquiry count, exceptions-needing-attention) that update in place as new enquiries land — no page refresh needed to notice them.
+- Staff-gated account creation — `POST /api/staff/accounts` requires an existing staff session, so new accounts can only be created by someone already signed in, never self-registered (see [`server/README.md`](../server/README.md#staff-account-creation-postman-only)).
+- Partial staff attribution — internal notes record which staff member wrote them and when, visible in the staff API and Prisma Studio (see [Known limitations](../README.md#known-limitations-and-what-id-improve-next) for what this doesn't yet cover).

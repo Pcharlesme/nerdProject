@@ -227,6 +227,8 @@ Every `/api/staff/*` route (and `/api/auth/me`) requires a valid bearer token, c
 
 ## Assumptions and product decisions
 
+Builds on the stack choices in [Architecture](#architecture) above — these are the product-level calls that follow from them, not the tools themselves.
+
 - **A status change *is* a tracking event** — changing status writes a timeline event with that status attached, so the staff badge and the customer timeline can't disagree.
 - **Only the newest event moves `status`/`currentLocation`** — back-filling an older event never rewinds what the customer currently sees.
 - **The public API is an allow-list**, not a filtered staff response — contact details and internal notes are never serialized onto it at all.
@@ -238,9 +240,8 @@ Every `/api/staff/*` route (and `/api/auth/me`) requires a valid bearer token, c
 ## Known limitations and what I'd improve next
 
 - No shipment location map — text-based current location only (explicitly optional in the brief).
-- staff audit trail of who changed what and when
-
-- Single Render service, free tier — a real deployment would want an always-on API process and a paid Postgres tier.
+- No actor on tracking events or shipment edits — internal notes record which staff member wrote them, but a full "who changed what" audit trail would need an actor column on events/shipments too.
+- Single Render service, free tier — cold starts after idling (~50s for the first request); production/enterprise use would want an always-on API process, a paid Postgres tier, and a proper CI/migration-review pipeline.
 
 ## Checklist — task requirements
 
