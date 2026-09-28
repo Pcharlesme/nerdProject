@@ -44,6 +44,8 @@ PostgreSQL via Prisma (`prisma/schema.prisma`), five tables:
 
 Schema changes go through a real migration (`prisma/migrations/`), never `db push` — `npm run db:migrate:dev` creates one locally, `npm run db:migrate` (`prisma migrate deploy`) applies pending ones in production.
 
+![Prisma Studio — data model](../web/public/readme/prsimaDbinstance.png)
+
 ## 3. API reference
 
 All responses are JSON. Success: `{ "data": … }` (list endpoints add `"meta": { total, page, limit, totalPages }`). Errors: `{ "error": { "code", "message", "details"?: [{ "field", "message" }] } }`.

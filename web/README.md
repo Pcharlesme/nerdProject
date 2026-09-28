@@ -58,6 +58,8 @@ A collapsible enquiry form (tracking number, category, message) lets a customer 
 | Analytics | Delivery-performance trend with a real date picker, plus a fleet-wide status breakdown |
 
 ![Staff dashboard](public/readme/staff-dashboard.png)
+![Shipment list — search, filter, pagination](public/readme/stafforder.png)
+![Analytics — delivery performance](public/readme/staffanalystic.png)
 
 ## 4. UX & accessibility
 
@@ -104,6 +106,8 @@ The customer landing page ships as close to zero unnecessary work as practical:
 | Cumulative Layout Shift | — | 0 |
 
 Desktop preset scores 100 (LCP 0.6s) on the same build.
+
+![Lighthouse — 100 across all four categories](public/readme/UXLighthouse%20test.png)
 
 ## 7. Testing
 

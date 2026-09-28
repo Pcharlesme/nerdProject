@@ -123,10 +123,13 @@ Same database row on both sides — an enquiry a customer submits shows up, unmo
 
 ## Screenshots
 
-| Customer landing | Customer tracking result | Staff dashboard |
+| Customer landing | Customer tracking result | Customer tracking — exception |
 |---|---|---|
-| ![Customer landing page](web/public/readme/customer-home.png) | ![Tracking a delayed shipment](web/public/readme/customer-tracking.png) | 
-![Staff dashboard](web/public/readme/staff-dashboard.png) |
+| ![Customer landing page](web/public/readme/customer-home.png) | ![Tracking a delayed shipment](web/public/readme/customer-tracking.png) | ![Tracking an exception shipment](web/public/readme/customer-tracking1.png) |
+
+| Staff dashboard | Staff shipment list | Staff analytics |
+|---|---|---|
+| ![Staff dashboard](web/public/readme/staff-dashboard.png) | ![Shipment list — search, filter, pagination](web/public/readme/stafforder.png) | ![Analytics — delivery performance](web/public/readme/staffanalystic.png) |
 
 ## Running it locally
 
