@@ -167,3 +167,5 @@ npm run test:watch  # watch mode
 - CSV export of the filtered shipment list from the dashboard.
 - Live badges (open-enquiry count, exceptions-needing-attention) that update as data changes.
 - In App notification for Customer Enquries
+- Role Based access control for staff
+- Staff Audit

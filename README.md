@@ -1,16 +1,16 @@
 # NerdLogistics — Shipment Tracking Dashboard
 
-A logistics web app with two experiences: a public page where anyone can track a shipment, and a staff dashboard (behind login) for managing shipments, statuses, tracking history and customer enquiries. Built for the *Shipment Tracking Dashboard* take-home task — see [`requirement/Software Developer Task.pdf`](requirement/Software%20Developer%20Task.pdf) for the original brief.
+A logistics web app with two experiences: a public page where anyone can track a shipment, and a staff dashboard (behind login) for managing shipments, statuses, tracking history and customer enquiries. Built for the *Shipment Tracking Dashboard* take-home task
 
 ## Live deployment
 
 | | |
 |---|---|
-| Live URL | **https://nerdlogic.onrender.com** |
-| Staff sign-in | https://nerdlogic.onrender.com/staff |
+| Live URL | **https://nerd-project-web.vercel.app/** |
+| Staff sign-in | https://nerd-project-web.vercel.app/staff |
 | Demo staff login | `staff@shiptrack.com` / `demo1234` |
 | Demo tracking numbers | see [Demo data](#demo-data) below |
-| Walkthrough video | _add the recording link here before submitting_ |
+
 
 The customer tracking page needs no login. The staff area sits behind the credentials above — a private/incognito window reproduces exactly what a reviewer would see.
 
@@ -56,7 +56,7 @@ nerdProject/
 │   ├── src/middleware/            requireStaff (auth), validate (Joi), rate limiters, error handler
 │   ├── prisma/                    schema.prisma + versioned migrations
 │   └── src/seed/                  demo data (idempotent, re-runnable)
-└── requirement/                 the task brief (PDF) and this project's own planning notes
+
 ```
 
 Full detail on each side: [`web/README.md`](web/README.md) (Frontend/UX/performance/testing) and [`server/README.md`](server/README.md) (API reference, Backend, data model, deployment).
@@ -125,14 +125,15 @@ Same database row on both sides — an enquiry a customer submits shows up, unmo
 
 | Customer landing | Customer tracking result | Staff dashboard |
 |---|---|---|
-| ![Customer landing page](web/public/readme/customer-home.png) | ![Tracking a delayed shipment](web/public/readme/customer-tracking.png) | ![Staff dashboard](web/public/readme/staff-dashboard.png) |
+| ![Customer landing page](web/public/readme/customer-home.png) | ![Tracking a delayed shipment](web/public/readme/customer-tracking.png) | 
+![Staff dashboard](web/public/readme/staff-dashboard.png) |
 
 ## Running it locally
 
 **Prerequisites:** Node.js ≥ 20.9, npm, and a Postgres database (a free [Neon](https://neon.tech) project is the easiest match for production; any local Postgres also works).
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/Pcharlesme/nerdProject.git
 cd nerdProject
 npm install                          # installs both workspaces
 cp server/.env.example server/.env   # fill in DATABASE_URL, DIRECT_URL, JWT_SECRET
@@ -234,7 +235,7 @@ Every `/api/staff/*` route (and `/api/auth/me`) requires a valid bearer token, c
 ## Known limitations and what I'd improve next
 
 - No shipment location map — text-based current location only (explicitly optional in the brief).
-- No staff audit trail of who changed what (there's exactly one staff account seeded, so it matters less here).
+- staff audit trail of who changed what and when
 
 - Single Render service, free tier — a real deployment would want an always-on API process and a paid Postgres tier.
 
